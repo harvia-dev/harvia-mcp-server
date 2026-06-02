@@ -10,7 +10,7 @@ An [MCP](https://modelcontextprotocol.io) server that exposes the Harvia MyHarvi
 - **Heater configuration** — list heater models (electric, wood, gas) and query configuration metadata (brands, power, stones)
 - **Events** — list device and organization events, deactivate events, query event type definitions
 - **Notifications** — create, list, and remove notification subscriptions (SMS, email, push) per user or organization
-- **Measurements & sessions** — latest sensor readings, historical measurements with sampling options, sauna session history per device or organization, PDF report generation
+- **Measurements & sessions** — latest sensor readings, sauna session history per device or organization
 - **OTA updates** — list available firmware packages, query update states, start and cancel device updates
 
 ## Setup

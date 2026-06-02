@@ -14,22 +14,6 @@ export const dataTools: Tool[] = [
     },
   },
   {
-    name: "list_measurements",
-    description: "List historical measurements for a device within a time range",
-    inputSchema: {
-      type: "object",
-      properties: {
-        deviceId: { type: "string", description: "Device ID" },
-        startTimestamp: { type: "string", description: "Start timestamp (ISO 8601 or Unix ms string)" },
-        endTimestamp: { type: "string", description: "End timestamp (ISO 8601 or Unix ms string)" },
-        samplingMode: { type: "string", enum: ["NONE", "SAMPLING", "AVERAGE"] },
-        sampleAmount: { type: "number", description: "Number of samples to return" },
-        nextToken: { type: "string", description: "Pagination token from a previous response" },
-      },
-      required: ["deviceId", "startTimestamp", "endTimestamp"],
-    },
-  },
-  {
     name: "list_device_sessions",
     description: "List sauna sessions for a device within a time range",
     inputSchema: {
@@ -57,21 +41,6 @@ export const dataTools: Tool[] = [
       required: ["organizationId", "startTimestamp", "endTimestamp"],
     },
   },
-  {
-    name: "generate_measurements_pdf",
-    description: "Generate a PDF report of measurements for a device and return a download URL",
-    inputSchema: {
-      type: "object",
-      properties: {
-        deviceId: { type: "string", description: "Device ID" },
-        startTimestamp: { type: "string", description: "Start timestamp" },
-        endTimestamp: { type: "string", description: "End timestamp" },
-        samplingMode: { type: "string", enum: ["NONE", "SAMPLING", "AVERAGE"] },
-        sampleAmount: { type: "number" },
-      },
-      required: ["deviceId", "startTimestamp", "endTimestamp"],
-    },
-  },
 ];
 
 export async function handleDataTool(
@@ -91,34 +60,6 @@ export async function handleDataTool(
         { deviceId: args.deviceId }
       );
       return data.devicesMeasurementsLatest;
-    }
-
-    case "list_measurements": {
-      const data = await gql<{ devicesMeasurementsList: unknown }>(
-        endpoint,
-        `query ListMeasurements(
-          $deviceId: String!
-          $startTimestamp: String!
-          $endTimestamp: String!
-          $samplingMode: SamplingMode
-          $sampleAmount: Int
-          $nextToken: String
-        ) {
-          devicesMeasurementsList(
-            deviceId: $deviceId
-            startTimestamp: $startTimestamp
-            endTimestamp: $endTimestamp
-            samplingMode: $samplingMode
-            sampleAmount: $sampleAmount
-            nextToken: $nextToken
-          ) {
-            measurementItems { deviceId subId timestamp sessionId type data }
-            nextToken
-          }
-        }`,
-        args
-      );
-      return data.devicesMeasurementsList;
     }
 
     case "list_device_sessions": {
@@ -167,31 +108,6 @@ export async function handleDataTool(
         args
       );
       return data.organizationsSessionsList;
-    }
-
-    case "generate_measurements_pdf": {
-      const data = await gql<{ devicesMeasurementsPdfGenerate: unknown }>(
-        endpoint,
-        `query GeneratePdf(
-          $deviceId: String!
-          $startTimestamp: String!
-          $endTimestamp: String!
-          $samplingMode: SamplingMode
-          $sampleAmount: Int
-        ) {
-          devicesMeasurementsPdfGenerate(
-            deviceId: $deviceId
-            startTimestamp: $startTimestamp
-            endTimestamp: $endTimestamp
-            samplingMode: $samplingMode
-            sampleAmount: $sampleAmount
-          ) {
-            url
-          }
-        }`,
-        args
-      );
-      return data.devicesMeasurementsPdfGenerate;
     }
 
     default:
