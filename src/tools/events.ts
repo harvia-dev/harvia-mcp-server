@@ -105,6 +105,18 @@ export const eventsTools: Tool[] = [
       required: ["userId", "subscriptionId"],
     },
   },
+  {
+    name: "list_organization_notification_subscriptions",
+    description: "List all notification subscriptions in an organization",
+    inputSchema: {
+      type: "object",
+      properties: {
+        organizationId: { type: "string", description: "Organization ID" },
+        nextToken: { type: "string", description: "Pagination token" },
+      },
+      required: ["organizationId"],
+    },
+  },
 ];
 
 export async function handleEventsTool(
@@ -219,6 +231,20 @@ export async function handleEventsTool(
         args
       );
       return data.notificationsSubscriptionsRemove;
+    }
+
+    case "list_organization_notification_subscriptions": {
+      const data = await gql<{ organizationsNotificationsSubscriptionsList: unknown }>(
+        endpoint,
+        `query ListOrganizationNotificationSubscriptions($organizationId: ID!, $nextToken: ID) {
+          organizationsNotificationsSubscriptionsList(organizationId: $organizationId, nextToken: $nextToken) {
+            subscriptions { id userId organizationId eventIds type state }
+            nextToken
+          }
+        }`,
+        args
+      );
+      return data.organizationsNotificationsSubscriptionsList;
     }
 
     default:

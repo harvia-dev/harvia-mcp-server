@@ -15,7 +15,7 @@ export const deviceTools: Tool[] = [
   },
   {
     name: "search_devices",
-    description: "Search for devices by a query string",
+    description: "Search for devices by a query string matching device attributes (serial number, model, location, etc.). Does NOT search by display name — to find a device by its display name, use list_user_devices followed by get_device_state.",
     inputSchema: {
       type: "object",
       properties: {
@@ -36,17 +36,51 @@ export const deviceTools: Tool[] = [
         nextToken: { type: "string", description: "Pagination token" },
         maxResults: { type: "number" },
         recursive: { type: "boolean", description: "Include devices from sub-organizations" },
+        filter: {
+          type: "object",
+          description: "Filter by device attributes",
+          properties: {
+            attributes: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  key: { type: "string" },
+                  value: { type: "string" },
+                },
+                required: ["key", "value"],
+              },
+            },
+          },
+        },
       },
       required: ["organizationId"],
     },
   },
   {
     name: "list_user_devices",
-    description: "List all devices accessible to the currently authenticated user. Does not include display names — call get_device_state with shadowName='C1' for each device to retrieve the displayName field.",
+    description: "List all devices accessible to the currently authenticated user. Does not include display names. Always follow up with get_device_state (shadowName='C1') for each device to retrieve the displayName field — this is required both when the user asks to list their devices (include display names in the response) and when finding a device by name the user mentioned.",
     inputSchema: {
       type: "object",
       properties: {
         nextToken: { type: "string", description: "Pagination token" },
+        filter: {
+          type: "object",
+          description: "Filter by device attributes",
+          properties: {
+            attributes: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  key: { type: "string" },
+                  value: { type: "string" },
+                },
+                required: ["key", "value"],
+              },
+            },
+          },
+        },
       },
     },
   },
@@ -112,6 +146,7 @@ export const deviceTools: Tool[] = [
           ],
           description: "Command type",
         },
+        subId: { type: "string", description: "Sub-device identifier (e.g. for multi-zone systems)" },
         params: { type: "object", description: "Optional command parameters" },
       },
       required: ["deviceId", "commandType"],
@@ -126,6 +161,7 @@ export const deviceTools: Tool[] = [
         deviceId: { type: "string", description: "Device ID" },
         state: { type: "object", description: "Desired state as a JSON object" },
         shadowName: { type: "string", description: "Named shadow (omit for classic shadow)" },
+        clientToken: { type: "string", description: "Optional client token for deduplication" },
       },
       required: ["deviceId", "state"],
     },
@@ -180,6 +216,7 @@ export const deviceTools: Tool[] = [
           type: "string",
           description: "Target organization ID (omit to remove from current org)",
         },
+        subId: { type: "string", description: "Sub-device identifier" },
       },
       required: ["deviceId"],
     },
@@ -191,6 +228,23 @@ export const deviceTools: Tool[] = [
       type: "object",
       properties: {
         organizationId: { type: "string", description: "Organization ID" },
+        filter: {
+          type: "object",
+          description: "Filter by device attributes",
+          properties: {
+            attributes: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  key: { type: "string" },
+                  value: { type: "string" },
+                },
+                required: ["key", "value"],
+              },
+            },
+          },
+        },
       },
       required: ["organizationId"],
     },
@@ -240,6 +294,56 @@ export const deviceTools: Tool[] = [
       },
     },
   },
+  {
+    name: "get_heater_config_metadata",
+    description: "Get heater configuration metadata including available brands, power selections, and stones selections",
+    inputSchema: {
+      type: "object",
+      properties: {
+        brandType: { type: "string", description: "Filter by brand type" },
+        version: { type: "string", description: "Configuration version" },
+      },
+    },
+  },
+  {
+    name: "list_organization_contract_devices",
+    description: "List all contract devices across any contract of an organization",
+    inputSchema: {
+      type: "object",
+      properties: {
+        organizationId: { type: "string", description: "Organization ID" },
+        filter: {
+          type: "object",
+          description: "Filter by device attributes",
+          properties: {
+            attributes: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  key: { type: "string" },
+                  value: { type: "string" },
+                },
+                required: ["key", "value"],
+              },
+            },
+          },
+        },
+      },
+      required: ["organizationId"],
+    },
+  },
+  {
+    name: "list_ota_update_states",
+    description: "List current OTA firmware update states for devices",
+    inputSchema: {
+      type: "object",
+      properties: {
+        onlyActive: { type: "boolean", description: "Return only active (in-progress) updates" },
+        nextToken: { type: "string", description: "Pagination token" },
+      },
+    },
+  },
 ];
 
 export async function handleDeviceTool(
@@ -278,12 +382,13 @@ export async function handleDeviceTool(
     case "list_organization_devices": {
       const data = await gql<{ organizationsDevicesList: unknown }>(
         endpoint,
-        `query ListOrganizationDevices($organizationId: ID!, $nextToken: String, $maxResults: Int, $recursive: Boolean) {
+        `query ListOrganizationDevices($organizationId: ID!, $nextToken: String, $maxResults: Int, $recursive: Boolean, $filter: DeviceFleetFilterInput) {
           organizationsDevicesList(
             organizationId: $organizationId
             nextToken: $nextToken
             maxResults: $maxResults
             recursive: $recursive
+            filter: $filter
           ) {
             devices { id type attr { key value } roles via }
             nextToken
@@ -297,13 +402,13 @@ export async function handleDeviceTool(
     case "list_user_devices": {
       const data = await gql<{ usersDevicesList: unknown }>(
         endpoint,
-        `query ListUserDevices($nextToken: ID) {
-          usersDevicesList(nextToken: $nextToken) {
+        `query ListUserDevices($nextToken: ID, $filter: DeviceFleetFilterInput) {
+          usersDevicesList(nextToken: $nextToken, filter: $filter) {
             devices { id type attr { key value } roles via }
             nextToken
           }
         }`,
-        { nextToken: args.nextToken }
+        { nextToken: args.nextToken, filter: args.filter }
       );
       return data.usersDevicesList;
     }
@@ -347,17 +452,18 @@ export async function handleDeviceTool(
     }
 
     case "send_device_command": {
-      const { deviceId, commandType, params } = args as any;
+      const { deviceId, commandType, subId, params } = args as any;
       const data = await gql<{ devicesCommandsSend: unknown }>(
         endpoint,
-        `mutation SendCommand($deviceId: ID!, $command: Command!, $params: AWSJSON) {
-          devicesCommandsSend(deviceId: $deviceId, command: $command, params: $params) {
+        `mutation SendCommand($deviceId: ID!, $command: Command!, $subId: String, $params: AWSJSON) {
+          devicesCommandsSend(deviceId: $deviceId, command: $command, subId: $subId, params: $params) {
             response failureReason
           }
         }`,
         {
           deviceId,
           command: { type: commandType },
+          subId,
           params: params != null ? JSON.stringify(params) : undefined,
         }
       );
@@ -365,13 +471,13 @@ export async function handleDeviceTool(
     }
 
     case "update_device_state": {
-      const { deviceId, state, shadowName } = args as any;
+      const { deviceId, state, shadowName, clientToken } = args as any;
       const data = await gql<{ devicesStatesUpdate: unknown }>(
         endpoint,
-        `mutation UpdateDeviceState($deviceId: ID!, $state: AWSJSON!, $shadowName: String) {
-          devicesStatesUpdate(deviceId: $deviceId, state: $state, shadowName: $shadowName)
+        `mutation UpdateDeviceState($deviceId: ID!, $state: AWSJSON!, $shadowName: String, $clientToken: String) {
+          devicesStatesUpdate(deviceId: $deviceId, state: $state, shadowName: $shadowName, clientToken: $clientToken)
         }`,
-        { deviceId, state: JSON.stringify(state), shadowName }
+        { deviceId, state: JSON.stringify(state), shadowName, clientToken }
       );
       return data.devicesStatesUpdate;
     }
@@ -403,8 +509,8 @@ export async function handleDeviceTool(
     case "move_device": {
       const data = await gql<{ organizationsDevicesMove: unknown }>(
         endpoint,
-        `mutation MoveDevice($deviceId: ID!, $organizationId: ID) {
-          organizationsDevicesMove(deviceId: $deviceId, organizationId: $organizationId) {
+        `mutation MoveDevice($deviceId: ID!, $organizationId: ID, $subId: String) {
+          organizationsDevicesMove(deviceId: $deviceId, organizationId: $organizationId, subId: $subId) {
             id type attr { key value } roles via
           }
         }`,
@@ -416,8 +522,8 @@ export async function handleDeviceTool(
     case "get_fleet_status": {
       const data = await gql<{ devicesFleetStatusGet: unknown }>(
         endpoint,
-        `query GetFleetStatus($organizationId: ID!) {
-          devicesFleetStatusGet(organizationId: $organizationId) {
+        `query GetFleetStatus($organizationId: ID!, $filter: DeviceFleetFilterInput) {
+          devicesFleetStatusGet(organizationId: $organizationId, filter: $filter) {
             fleetStatus { key value }
           }
         }`,
@@ -479,6 +585,55 @@ export async function handleDeviceTool(
         args
       );
       return data.devicesHeaterModelList;
+    }
+
+    case "get_heater_config_metadata": {
+      const data = await gql<{ devicesHeaterConfigMetadata: unknown }>(
+        endpoint,
+        `query GetHeaterConfigMetadata($brandType: String, $version: String) {
+          devicesHeaterConfigMetadata(brandType: $brandType, version: $version) {
+            electricHeaterBrands { type name }
+            woodHeaterBrands { type name }
+            gasHeaterBrands { type name }
+            otherHeaterBrands { type name }
+            powerSelectionskW { type min max }
+            stonesSelectionsKg { type min max }
+          }
+        }`,
+        args
+      );
+      return data.devicesHeaterConfigMetadata;
+    }
+
+    case "list_organization_contract_devices": {
+      const data = await gql<{ organizationsContractsDevicesList: unknown }>(
+        endpoint,
+        `query ListOrganizationContractDevices($organizationId: ID!, $filter: DeviceFleetFilterInput) {
+          organizationsContractsDevicesList(organizationId: $organizationId, filter: $filter) {
+            devices { id type attr { key value } roles via }
+            nextToken
+          }
+        }`,
+        args
+      );
+      return data.organizationsContractsDevicesList;
+    }
+
+    case "list_ota_update_states": {
+      const data = await gql<{ otaUpdatesStatesList: unknown }>(
+        endpoint,
+        `query ListOtaUpdateStates($onlyActive: Boolean, $nextToken: String) {
+          otaUpdatesStatesList(onlyActive: $onlyActive, nextToken: $nextToken) {
+            otaUpdateStates {
+              batchKey deviceId updateFirmwareVersion updateState
+              resultCode progressPercent timestamp
+            }
+            nextToken
+          }
+        }`,
+        args
+      );
+      return data.otaUpdatesStatesList;
     }
 
     default:
