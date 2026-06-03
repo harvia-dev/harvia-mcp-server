@@ -167,61 +167,6 @@ export const deviceTools: Tool[] = [
     },
   },
   {
-    name: "update_device",
-    description: "Update device attributes (key-value pairs)",
-    inputSchema: {
-      type: "object",
-      properties: {
-        deviceId: { type: "string", description: "Device ID" },
-        attributes: {
-          type: "array",
-          items: {
-            type: "object",
-            properties: {
-              key: { type: "string" },
-              value: { type: "string" },
-            },
-            required: ["key", "value"],
-          },
-          description: "Attributes to update",
-        },
-      },
-      required: ["deviceId", "attributes"],
-    },
-  },
-  {
-    name: "update_device_tags",
-    description: "Replace all tags on a device with the provided list",
-    inputSchema: {
-      type: "object",
-      properties: {
-        deviceId: { type: "string", description: "Device ID" },
-        tags: {
-          type: "array",
-          items: { type: "string" },
-          description: "New tag list (replaces existing tags)",
-        },
-      },
-      required: ["deviceId", "tags"],
-    },
-  },
-  {
-    name: "move_device",
-    description: "Move a device to another organization, or remove it from its current organization",
-    inputSchema: {
-      type: "object",
-      properties: {
-        deviceId: { type: "string", description: "Device ID" },
-        organizationId: {
-          type: "string",
-          description: "Target organization ID (omit to remove from current org)",
-        },
-        subId: { type: "string", description: "Sub-device identifier" },
-      },
-      required: ["deviceId"],
-    },
-  },
-  {
     name: "get_fleet_status",
     description: "Get fleet status summary for an organization (connected/disconnected counts, etc.)",
     inputSchema: {
@@ -303,34 +248,6 @@ export const deviceTools: Tool[] = [
         brandType: { type: "string", description: "Filter by brand type" },
         version: { type: "string", description: "Configuration version" },
       },
-    },
-  },
-  {
-    name: "list_organization_contract_devices",
-    description: "List all contract devices across any contract of an organization",
-    inputSchema: {
-      type: "object",
-      properties: {
-        organizationId: { type: "string", description: "Organization ID" },
-        filter: {
-          type: "object",
-          description: "Filter by device attributes",
-          properties: {
-            attributes: {
-              type: "array",
-              items: {
-                type: "object",
-                properties: {
-                  key: { type: "string" },
-                  value: { type: "string" },
-                },
-                required: ["key", "value"],
-              },
-            },
-          },
-        },
-      },
-      required: ["organizationId"],
     },
   },
   {
@@ -482,43 +399,6 @@ export async function handleDeviceTool(
       return data.devicesStatesUpdate;
     }
 
-    case "update_device": {
-      const data = await gql<{ devicesUpdate: unknown }>(
-        endpoint,
-        `mutation UpdateDevice($deviceId: ID!, $attributes: [AttributeInput!]!) {
-          devicesUpdate(deviceId: $deviceId, attributes: $attributes) {
-            id type attr { key value } roles via
-          }
-        }`,
-        args
-      );
-      return data.devicesUpdate;
-    }
-
-    case "update_device_tags": {
-      const data = await gql<{ devicesTagsUpdate: unknown }>(
-        endpoint,
-        `mutation UpdateDeviceTags($deviceId: ID!, $tags: [String!]!) {
-          devicesTagsUpdate(deviceId: $deviceId, tags: $tags)
-        }`,
-        args
-      );
-      return data.devicesTagsUpdate;
-    }
-
-    case "move_device": {
-      const data = await gql<{ organizationsDevicesMove: unknown }>(
-        endpoint,
-        `mutation MoveDevice($deviceId: ID!, $organizationId: ID, $subId: String) {
-          organizationsDevicesMove(deviceId: $deviceId, organizationId: $organizationId, subId: $subId) {
-            id type attr { key value } roles via
-          }
-        }`,
-        args
-      );
-      return data.organizationsDevicesMove;
-    }
-
     case "get_fleet_status": {
       const data = await gql<{ devicesFleetStatusGet: unknown }>(
         endpoint,
@@ -603,20 +483,6 @@ export async function handleDeviceTool(
         args
       );
       return data.devicesHeaterConfigMetadata;
-    }
-
-    case "list_organization_contract_devices": {
-      const data = await gql<{ organizationsContractsDevicesList: unknown }>(
-        endpoint,
-        `query ListOrganizationContractDevices($organizationId: ID!, $filter: DeviceFleetFilterInput) {
-          organizationsContractsDevicesList(organizationId: $organizationId, filter: $filter) {
-            devices { id type attr { key value } roles via }
-            nextToken
-          }
-        }`,
-        args
-      );
-      return data.organizationsContractsDevicesList;
     }
 
     case "list_ota_update_states": {

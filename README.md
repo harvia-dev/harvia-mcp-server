@@ -1,16 +1,15 @@
 # Harvia MCP Server
 
-An [MCP](https://modelcontextprotocol.io) server that exposes the Harvia MyHarvia Cloud API to AI assistants. Lets Claude (or any MCP-compatible client) control and monitor Harvia sauna devices through natural language. The MCP service includes all features of the device, events and data services of the [MyHarvia Cloud API](https://harvia.io/api)
+An [MCP](https://modelcontextprotocol.io) server that exposes the Harvia MyHarvia Cloud API to AI assistants. Lets Claude (or any MCP-compatible client) control and monitor Harvia sauna devices through natural language. The MCP service includes main features of the device, events and data services of the [MyHarvia Cloud API](https://harvia.io/api)
 
 ## Features
 
 - **Device control** — start/stop sauna sessions, send commands (heater, lights, fan, steamer, vaporizer, IR heater, after-heater, external switch, duration adjustment)
-- **Device management** — list, search, update, move, and tag devices; query device state and metadata; list and filter by organization
-- **Fleet management** — fleet status summaries, contract device lists, organization-wide device listing
+- **Device management** — list, search, and query devices; get device state and metadata; list devices by organization
+- **Fleet management** — fleet status summaries, organization-wide device listing
 - **Heater configuration** — list heater models (electric, wood, gas) and query configuration metadata (brands, power, stones)
-- **Events** — list device and organization events, deactivate events, query event type definitions
-- **Notifications** — create, list, and remove notification subscriptions (SMS, email, push) per user or organization
-- **Measurements & sessions** — latest sensor readings, sauna session history per device or organization
+- **Events** — list device and organization events, query event type definitions
+- **Measurements & sessions** — latest and historical sensor readings (with sampling/averaging), sauna session history per device or organization
 - **OTA updates** — list available firmware packages, query update states, start and cancel device updates
 
 ## Setup

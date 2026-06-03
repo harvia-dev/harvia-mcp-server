@@ -3,6 +3,27 @@ import { gql } from "../graphql-client.js";
 
 export const dataTools: Tool[] = [
   {
+    name: "list_device_measurements",
+    description: "Get historical sensor measurements for a device within a time range. Use samplingMode AVERAGE with sampleAmount to downsample data for graphs. IMPORTANT: timestamps must be Unix milliseconds as strings (e.g. \"1780339669000\"), not ISO 8601. The db parameter selects the backend: 'influxdb' returns sauna readings (temp, hum) — use this by default; 'timestream' returns device diagnostics (batteryVoltage, rssi) — only query if explicitly requested.",
+    inputSchema: {
+      type: "object",
+      properties: {
+        deviceId: { type: "string", description: "Device ID" },
+        startTimestamp: { type: "string", description: "Start timestamp (ISO 8601)" },
+        endTimestamp: { type: "string", description: "End timestamp (ISO 8601)" },
+        samplingMode: {
+          type: "string",
+          enum: ["NONE", "SAMPLING", "AVERAGE"],
+          description: "Sampling strategy — NONE returns all points, SAMPLING picks evenly spaced points, AVERAGE averages buckets",
+        },
+        sampleAmount: { type: "number", description: "Number of samples/buckets when samplingMode is SAMPLING or AVERAGE" },
+        db: { type: "string", enum: ["timestream", "influxdb"], description: "Database backend to query" },
+        nextToken: { type: "string", description: "Pagination token" },
+      },
+      required: ["deviceId", "startTimestamp", "endTimestamp"],
+    },
+  },
+  {
     name: "get_latest_measurements",
     description: "Get the latest sensor measurements for a device",
     inputSchema: {
@@ -49,6 +70,36 @@ export async function handleDataTool(
   endpoint: string
 ): Promise<unknown> {
   switch (name) {
+    case "list_device_measurements": {
+      const data = await gql<{ devicesMeasurementsList: unknown }>(
+        endpoint,
+        `query ListDeviceMeasurements(
+          $deviceId: String!
+          $startTimestamp: String!
+          $endTimestamp: String!
+          $samplingMode: SamplingMode
+          $sampleAmount: Int
+          $db: DatabaseType
+          $nextToken: String
+        ) {
+          devicesMeasurementsList(
+            deviceId: $deviceId
+            startTimestamp: $startTimestamp
+            endTimestamp: $endTimestamp
+            samplingMode: $samplingMode
+            sampleAmount: $sampleAmount
+            db: $db
+            nextToken: $nextToken
+          ) {
+            measurementItems { deviceId subId timestamp sessionId type data }
+            nextToken
+          }
+        }`,
+        args
+      );
+      return data.devicesMeasurementsList;
+    }
+
     case "get_latest_measurements": {
       const data = await gql<{ devicesMeasurementsLatest: unknown }>(
         endpoint,
