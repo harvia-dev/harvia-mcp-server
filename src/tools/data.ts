@@ -4,13 +4,13 @@ import { gql } from "../graphql-client.js";
 export const dataTools: Tool[] = [
   {
     name: "list_device_measurements",
-    description: "Get historical sensor measurements for a device within a time range. Use samplingMode AVERAGE with sampleAmount to downsample data for graphs. IMPORTANT: timestamps must be Unix milliseconds as strings (e.g. \"1780339669000\"), not ISO 8601. The db parameter selects the backend: 'influxdb' returns sauna readings (temp, hum) — use this by default; 'timestream' returns device diagnostics (batteryVoltage, rssi) — only query if explicitly requested.",
+    description: "Get historical sensor measurements for a device. IMPORTANT: timestamps must be Unix milliseconds as strings (e.g. \"1780339669000\"), not ISO 8601. Use samplingMode AVERAGE with sampleAmount to downsample for graphs. IMPORTANT: always query only ONE database per call — never call this tool twice in parallel for the same time range. Default to 'timestream'. Only switch to 'influxdb' if the user specifically requests diagnostic fields (rssi, batteryVoltage, heapSize) OR if timestream returns no data.",
     inputSchema: {
       type: "object",
       properties: {
         deviceId: { type: "string", description: "Device ID" },
-        startTimestamp: { type: "string", description: "Start timestamp (ISO 8601)" },
-        endTimestamp: { type: "string", description: "End timestamp (ISO 8601)" },
+        startTimestamp: { type: "string", description: "Unix milliseconds as a string (e.g. '1780339669000'), NOT ISO 8601" },
+        endTimestamp: { type: "string", description: "Unix milliseconds as a string (e.g. '1780339669000'), NOT ISO 8601" },
         samplingMode: {
           type: "string",
           enum: ["NONE", "SAMPLING", "AVERAGE"],

@@ -4,7 +4,7 @@ import { gql } from "../graphql-client.js";
 export const deviceTools: Tool[] = [
   {
     name: "get_device",
-    description: "Get details of a specific device by ID",
+    description: "Get details of a specific device by ID (type, attributes, roles). Does not include connection state or displayName — use get_device_state for those.",
     inputSchema: {
       type: "object",
       properties: {
@@ -98,7 +98,7 @@ export const deviceTools: Tool[] = [
   },
   {
     name: "get_device_metadata",
-    description: "Get device metadata including owner and assigned roles",
+    description: "Get device metadata including owner, assigned roles, and contact info (name, phone number).",
     inputSchema: {
       type: "object",
       properties: {
@@ -208,7 +208,7 @@ export const deviceTools: Tool[] = [
   },
   {
     name: "start_device_ota",
-    description: "Start an OTA firmware update for a specific device",
+    description: "Start an OTA firmware update for a specific device. Use list_ota_updates to get the otaId of available firmware packages.",
     inputSchema: {
       type: "object",
       properties: {
