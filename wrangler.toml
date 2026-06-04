@@ -1,0 +1,9 @@
+name = "harvia-mcp"
+main = "src/worker.ts"
+compatibility_date = "2025-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[kv_namespaces]]
+binding = "SESSIONS"
+id = "fbcd2251cb854b64a965f3cb44c34a17"
+preview_id = "2c274857ac744f45b624ddc0f14a9b3b"

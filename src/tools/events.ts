@@ -49,15 +49,17 @@ export const eventsTools: Tool[] = [
 export async function handleEventsTool(
   name: string,
   args: Record<string, unknown>,
-  endpoint: string
+  endpoint: string,
+  idToken?: string
 ): Promise<unknown> {
+  const g = (query: string, variables?: Record<string, unknown>) =>
+    gql<Record<string, unknown>>(endpoint, query, variables, idToken);
   switch (name) {
     case "list_device_events": {
       const { deviceId, startTimestamp, endTimestamp, limit, order, nextToken } = args as any;
       const period =
         startTimestamp && endTimestamp ? { startTimestamp, endTimestamp } : undefined;
-      const data = await gql<{ devicesEventsList: unknown }>(
-        endpoint,
+      const data = await g(
         `query ListDeviceEvents($deviceId: ID!, $period: TimePeriod, $nextToken: ID, $limit: Int, $order: Order) {
           devicesEventsList(deviceId: $deviceId, period: $period, nextToken: $nextToken, limit: $limit, order: $order) {
             events {
@@ -76,8 +78,7 @@ export async function handleEventsTool(
       const { organizationId, startTimestamp, endTimestamp, limit, order, nextToken } = args as any;
       const period =
         startTimestamp && endTimestamp ? { startTimestamp, endTimestamp } : undefined;
-      const data = await gql<{ organizationsEventsList: unknown }>(
-        endpoint,
+      const data = await g(
         `query ListOrganizationEvents($organizationId: ID!, $period: TimePeriod, $nextToken: ID, $limit: Int, $order: Order) {
           organizationsEventsList(organizationId: $organizationId, period: $period, nextToken: $nextToken, limit: $limit, order: $order) {
             events {
@@ -93,8 +94,7 @@ export async function handleEventsTool(
     }
 
     case "list_event_metadata": {
-      const data = await gql<{ eventsMetadataList: unknown }>(
-        endpoint,
+      const data = await g(
         `query ListEventMetadata($nextToken: ID) {
           eventsMetadataList(nextToken: $nextToken) {
             eventMetadataItems { eventId name description }

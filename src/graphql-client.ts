@@ -3,9 +3,10 @@ import { getIdToken } from "./auth.js";
 export async function gql<T = unknown>(
   endpoint: string,
   query: string,
-  variables?: Record<string, unknown>
+  variables?: Record<string, unknown>,
+  token?: string
 ): Promise<T> {
-  const idToken = await getIdToken();
+  const idToken = token ?? await getIdToken();
 
   const response = await fetch(endpoint, {
     method: "POST",

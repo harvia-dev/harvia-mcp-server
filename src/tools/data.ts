@@ -67,12 +67,14 @@ export const dataTools: Tool[] = [
 export async function handleDataTool(
   name: string,
   args: Record<string, unknown>,
-  endpoint: string
+  endpoint: string,
+  idToken?: string
 ): Promise<unknown> {
+  const g = (query: string, variables?: Record<string, unknown>) =>
+    gql<Record<string, unknown>>(endpoint, query, variables, idToken);
   switch (name) {
     case "list_device_measurements": {
-      const data = await gql<{ devicesMeasurementsList: unknown }>(
-        endpoint,
+      const data = await g(
         `query ListDeviceMeasurements(
           $deviceId: String!
           $startTimestamp: String!
@@ -101,8 +103,7 @@ export async function handleDataTool(
     }
 
     case "get_latest_measurements": {
-      const data = await gql<{ devicesMeasurementsLatest: unknown }>(
-        endpoint,
+      const data = await g(
         `query GetLatestMeasurements($deviceId: String!) {
           devicesMeasurementsLatest(deviceId: $deviceId) {
             deviceId subId timestamp sessionId type data
@@ -114,8 +115,7 @@ export async function handleDataTool(
     }
 
     case "list_device_sessions": {
-      const data = await gql<{ devicesSessionsList: unknown }>(
-        endpoint,
+      const data = await g(
         `query ListDeviceSessions(
           $deviceId: String!
           $startTimestamp: AWSDateTime!
@@ -138,8 +138,7 @@ export async function handleDataTool(
     }
 
     case "list_organization_sessions": {
-      const data = await gql<{ organizationsSessionsList: unknown }>(
-        endpoint,
+      const data = await g(
         `query ListOrganizationSessions(
           $organizationId: String!
           $startTimestamp: AWSDateTime!

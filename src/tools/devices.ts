@@ -266,12 +266,15 @@ export const deviceTools: Tool[] = [
 export async function handleDeviceTool(
   name: string,
   args: Record<string, unknown>,
-  endpoint: string
+  endpoint: string,
+  idToken?: string
 ): Promise<unknown> {
+  const g = (query: string, variables?: Record<string, unknown>) =>
+    gql<Record<string, unknown>>(endpoint, query, variables, idToken);
+
   switch (name) {
     case "get_device": {
-      const data = await gql<{ devicesGet: unknown }>(
-        endpoint,
+      const data = await g(
         `query GetDevice($deviceId: ID!) {
           devicesGet(deviceId: $deviceId) {
             id type attr { key value } roles via
@@ -283,8 +286,7 @@ export async function handleDeviceTool(
     }
 
     case "search_devices": {
-      const data = await gql<{ devicesSearch: unknown }>(
-        endpoint,
+      const data = await g(
         `query SearchDevices($query: String!, $nextToken: String, $maxResults: Int) {
           devicesSearch(query: $query, nextToken: $nextToken, maxResults: $maxResults) {
             devices { id type attr { key value } roles via }
@@ -297,8 +299,7 @@ export async function handleDeviceTool(
     }
 
     case "list_organization_devices": {
-      const data = await gql<{ organizationsDevicesList: unknown }>(
-        endpoint,
+      const data = await g(
         `query ListOrganizationDevices($organizationId: ID!, $nextToken: String, $maxResults: Int, $recursive: Boolean, $filter: DeviceFleetFilterInput) {
           organizationsDevicesList(
             organizationId: $organizationId
@@ -317,8 +318,7 @@ export async function handleDeviceTool(
     }
 
     case "list_user_devices": {
-      const data = await gql<{ usersDevicesList: unknown }>(
-        endpoint,
+      const data = await g(
         `query ListUserDevices($nextToken: ID, $filter: DeviceFleetFilterInput) {
           usersDevicesList(nextToken: $nextToken, filter: $filter) {
             devices { id type attr { key value } roles via }
@@ -331,8 +331,7 @@ export async function handleDeviceTool(
     }
 
     case "get_device_state": {
-      const data = await gql<{ devicesStatesGet: unknown }>(
-        endpoint,
+      const data = await g(
         `query GetDeviceState($deviceId: ID!, $shadowName: String) {
           devicesStatesGet(deviceId: $deviceId, shadowName: $shadowName) {
             deviceId shadowName desired reported timestamp version clientToken
@@ -345,8 +344,7 @@ export async function handleDeviceTool(
     }
 
     case "get_device_metadata": {
-      const data = await gql<{ devicesMetadataGet: unknown }>(
-        endpoint,
+      const data = await g(
         `query GetDeviceMetadata($deviceId: ID) {
           devicesMetadataGet(deviceId: $deviceId) {
             deviceId owner roles contactName phoneCountryCode phoneNumber
@@ -358,8 +356,7 @@ export async function handleDeviceTool(
     }
 
     case "list_device_tags": {
-      const data = await gql<{ devicesTagsList: unknown }>(
-        endpoint,
+      const data = await g(
         `query ListDeviceTags($deviceId: ID!) {
           devicesTagsList(deviceId: $deviceId)
         }`,
@@ -370,8 +367,7 @@ export async function handleDeviceTool(
 
     case "send_device_command": {
       const { deviceId, commandType, subId, params } = args as any;
-      const data = await gql<{ devicesCommandsSend: unknown }>(
-        endpoint,
+      const data = await g(
         `mutation SendCommand($deviceId: ID!, $command: Command!, $subId: String, $params: AWSJSON) {
           devicesCommandsSend(deviceId: $deviceId, command: $command, subId: $subId, params: $params) {
             response failureReason
@@ -389,8 +385,7 @@ export async function handleDeviceTool(
 
     case "update_device_state": {
       const { deviceId, state, shadowName, clientToken } = args as any;
-      const data = await gql<{ devicesStatesUpdate: unknown }>(
-        endpoint,
+      const data = await g(
         `mutation UpdateDeviceState($deviceId: ID!, $state: AWSJSON!, $shadowName: String, $clientToken: String) {
           devicesStatesUpdate(deviceId: $deviceId, state: $state, shadowName: $shadowName, clientToken: $clientToken)
         }`,
@@ -400,8 +395,7 @@ export async function handleDeviceTool(
     }
 
     case "get_fleet_status": {
-      const data = await gql<{ devicesFleetStatusGet: unknown }>(
-        endpoint,
+      const data = await g(
         `query GetFleetStatus($organizationId: ID!, $filter: DeviceFleetFilterInput) {
           devicesFleetStatusGet(organizationId: $organizationId, filter: $filter) {
             fleetStatus { key value }
@@ -413,8 +407,7 @@ export async function handleDeviceTool(
     }
 
     case "list_ota_updates": {
-      const data = await gql<{ otaUpdatesList: unknown }>(
-        endpoint,
+      const data = await g(
         `query ListOtaUpdates($nextToken: String, $deviceType: String, $hwVersion: String) {
           otaUpdatesList(nextToken: $nextToken, deviceType: $deviceType, hwVersion: $hwVersion) {
             otaUpdates {
@@ -430,8 +423,7 @@ export async function handleDeviceTool(
     }
 
     case "start_device_ota": {
-      const data = await gql<{ devicesOtaUpdatesStart: unknown }>(
-        endpoint,
+      const data = await g(
         `mutation StartDeviceOta($deviceId: ID!, $otaId: ID!) {
           devicesOtaUpdatesStart(deviceId: $deviceId, otaId: $otaId)
         }`,
@@ -441,8 +433,7 @@ export async function handleDeviceTool(
     }
 
     case "cancel_device_ota": {
-      const data = await gql<{ devicesOtaUpdatesCancel: unknown }>(
-        endpoint,
+      const data = await g(
         `mutation CancelDeviceOta($deviceId: ID!) {
           devicesOtaUpdatesCancel(deviceId: $deviceId)
         }`,
@@ -452,8 +443,7 @@ export async function handleDeviceTool(
     }
 
     case "list_heater_models": {
-      const data = await gql<{ devicesHeaterModelList: unknown }>(
-        endpoint,
+      const data = await g(
         `query ListHeaterModels($brandType: String) {
           devicesHeaterModelList(brandType: $brandType) {
             electric { name powerkW stonesKg }
@@ -468,8 +458,7 @@ export async function handleDeviceTool(
     }
 
     case "get_heater_config_metadata": {
-      const data = await gql<{ devicesHeaterConfigMetadata: unknown }>(
-        endpoint,
+      const data = await g(
         `query GetHeaterConfigMetadata($brandType: String, $version: String) {
           devicesHeaterConfigMetadata(brandType: $brandType, version: $version) {
             electricHeaterBrands { type name }
@@ -486,8 +475,7 @@ export async function handleDeviceTool(
     }
 
     case "list_ota_update_states": {
-      const data = await gql<{ otaUpdatesStatesList: unknown }>(
-        endpoint,
+      const data = await g(
         `query ListOtaUpdateStates($onlyActive: Boolean, $nextToken: String) {
           otaUpdatesStatesList(onlyActive: $onlyActive, nextToken: $nextToken) {
             otaUpdateStates {
