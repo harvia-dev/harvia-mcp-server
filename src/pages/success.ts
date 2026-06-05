@@ -194,7 +194,7 @@ ${setupHeader({ base })}
 
 <details class="card" id="manage-urls">
   <summary class="card-header" style="display:flex;align-items:center;gap:.6rem;cursor:pointer;">
-    <h2>All your active URLs <span style="font-size:.75rem;font-weight:400;color:var(--text2);margin-left:.4rem;">— click to expand</span></h2>
+    <h2>Manage your URLs <span style="font-size:.75rem;font-weight:400;color:var(--text2);margin-left:.4rem;">— click to expand</span></h2>
   </summary>
   <table>
     <thead><tr><th>Created</th><th>Token</th><th></th></tr></thead>
