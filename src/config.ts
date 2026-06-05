@@ -9,6 +9,10 @@ export interface EndpointConfig {
 
 let cachedConfig: EndpointConfig | null = null;
 
+/**
+ * Fetches live API endpoint URLs from Harvia's discovery service and caches them
+ * for the lifetime of the Worker instance.
+ */
 export async function getEndpointConfig(): Promise<EndpointConfig> {
   if (cachedConfig) return cachedConfig;
 

@@ -1,3 +1,6 @@
+// Core MCP endpoint. Validates the bearer token, then dispatches JSON-RPC
+// tool calls to the appropriate Harvia GraphQL API.
+
 import { Env, Session } from "./types.js";
 import { corsHeaders, jsonResponse, jsonRpcOk, jsonRpcErr } from "./utils.js";
 import { getValidIdToken } from "./session.js";
@@ -23,9 +26,7 @@ export async function handleMcp(request: Request, env: Env): Promise<Response> {
     });
   }
 
-  console.log("[mcp] token prefix:", sessionToken.substring(0, 8));
   let session = await env.SESSIONS.get<Session>(`session:${sessionToken}`, "json");
-  console.log("[mcp] session found:", session !== null);
   // Retry once after short delay to handle KV global propagation lag
   if (!session) {
     await new Promise(r => setTimeout(r, 1500));

@@ -1,5 +1,8 @@
 /// <reference types="@cloudflare/workers-types" />
 
+// Entry point for the Cloudflare Worker. Routes every incoming HTTP request to
+// the appropriate handler based on pathname.
+
 import { Env } from "./types.js";
 import { corsHeaders, jsonResponse } from "./utils.js";
 import { handleOAuthMetadata, handleClientRegistration, handleAuthorize, handleLogin, handleToken } from "./oauth.js";
@@ -7,6 +10,7 @@ import { handleMcp } from "./mcp.js";
 import { handleSetupPage, handleSetupSubmit } from "./pages/setup.js";
 import { handleRevoke, handleRevokeAll } from "./pages/revoke.js";
 
+/** Cloudflare Worker default export — the sole HTTP router for this service. */
 export default {
   async fetch(request: Request, env: Env): Promise<Response> {
     const { pathname } = new URL(request.url);

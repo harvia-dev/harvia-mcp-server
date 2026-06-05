@@ -1,3 +1,4 @@
+/** Generates a cryptographically random URL-safe base64 token (256 bits). */
 export function generateToken(): string {
   const bytes = new Uint8Array(32);
   crypto.getRandomValues(bytes);
@@ -7,6 +8,7 @@ export function generateToken(): string {
     .replace(/=/g, "");
 }
 
+/** Hashes a string with SHA-256 and returns it as URL-safe base64 — used for PKCE code challenge verification. */
 export async function sha256Base64Url(plain: string): Promise<string> {
   const data = new TextEncoder().encode(plain);
   const hash = await crypto.subtle.digest("SHA-256", data);

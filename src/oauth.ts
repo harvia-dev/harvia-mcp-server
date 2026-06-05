@@ -1,3 +1,6 @@
+// OAuth 2.0 + PKCE handlers used by Claude Code's MCP client to authenticate
+// via the /authorize → /login → /token flow before gaining access to /mcp.
+
 import { Env, Session } from "./types.js";
 import { generateToken, sha256Base64Url, escapeHtml, jsonResponse, getPublicBase } from "./utils.js";
 import { loginWithCredentials } from "./auth.js";
@@ -134,7 +137,6 @@ export async function handleLogin(request: Request, env: Env): Promise<Response>
 export async function handleToken(request: Request, env: Env): Promise<Response> {
   let code = "";
   let codeVerifier = "";
-  console.log("[token] content-type:", request.headers.get("Content-Type"));
 
   const contentType = request.headers.get("Content-Type") ?? "";
   if (contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data")) {
@@ -147,18 +149,15 @@ export async function handleToken(request: Request, env: Env): Promise<Response>
     codeVerifier = body.code_verifier ?? "";
   }
 
-  console.log("[token] code length:", code.length, "verifier length:", codeVerifier.length);
   const codeData = await env.SESSIONS.get<{ sessionToken: string; codeChallenge: string }>(
     `code:${code}`,
     "json"
   );
-  console.log("[token] codeData found:", codeData !== null);
   if (!codeData) {
     return jsonResponse({ error: "invalid_grant" }, 400);
   }
 
   const challenge = await sha256Base64Url(codeVerifier);
-  console.log("[token] challenge match:", challenge === codeData.codeChallenge);
   if (challenge !== codeData.codeChallenge) {
     return jsonResponse({ error: "invalid_grant", error_description: "code_verifier mismatch" }, 400);
   }

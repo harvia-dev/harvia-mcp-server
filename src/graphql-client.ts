@@ -1,18 +1,15 @@
-import { getIdToken } from "./auth.js";
-
+/** Sends an authenticated GraphQL request and returns the response data. */
 export async function gql<T = unknown>(
   endpoint: string,
   query: string,
   variables?: Record<string, unknown>,
   token?: string
 ): Promise<T> {
-  const idToken = token ?? await getIdToken();
-
   const response = await fetch(endpoint, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${idToken}`,
+      Authorization: `Bearer ${token}`,
     },
     body: JSON.stringify({ query, variables }),
   });
