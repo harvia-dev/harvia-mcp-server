@@ -74,7 +74,7 @@ ${setupHeader()}
 </div>
 </div>
 </main>
-<footer>&copy; 2026 Harvia</footer>
+<footer>Created by <a href="https://www.harvialabs.com/" target="_blank" rel="noopener" style="color:inherit;">Harvia Labs</a>. &copy; 2026 Harvia</footer>
 </body>
 </html>`;
   return new Response(html, { headers: { "Content-Type": "text/html;charset=UTF-8" } });

@@ -96,6 +96,15 @@ function openManage() {
   const d = document.getElementById('manage-urls');
   if (d) { d.open = true; setTimeout(() => d.scrollIntoView({behavior:'smooth'}), 50); }
 }
+function toggleUrl() {
+  const box = document.getElementById('url-box');
+  const btn = document.getElementById('url-toggle');
+  if (!box || !btn) return;
+  const visible = box.dataset.visible === '1';
+  box.textContent = visible ? '••••••••••••••••••••••••••••••••••••••••' : box.dataset.url;
+  box.dataset.visible = visible ? '0' : '1';
+  btn.textContent = visible ? 'Show URL' : 'Hide URL';
+}
 document.addEventListener('DOMContentLoaded', function() {
   document.querySelectorAll('[data-ts]').forEach(function(el) {
     const d = new Date(Number(el.getAttribute('data-ts')));
@@ -114,12 +123,13 @@ ${setupHeader({ base })}
   <div class="card-header"><div class="step-badge">1</div><h2>Your personal Harvia MCP URL</h2></div>
   <div class="card-body">
     <p style="font-size:.84rem;color:var(--text2);">This URL connects Claude to your Harvia account. Keep it private — treat it like a password.</p>
-    <div class="url-box">${escapeHtml(mcpUrl)}</div>
+    <div id="url-box" class="url-box" data-url="${escapeHtml(mcpUrl)}" data-visible="0">••••••••••••••••••••••••••••••••••••••••</div>
     <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
       <button class="btn btn-red" onclick="copyText('${escapeHtml(mcpUrl)}',this)">Copy URL</button>
+      <button id="url-toggle" class="btn btn-gray" onclick="toggleUrl()">Show URL</button>
       <a href="#manage-urls" onclick="openManage()" style="font-size:.8rem;color:var(--text2);text-decoration:none;border-bottom:1px solid var(--light-gray);">Manage your URLs</a>
     </div>
-    <p style="font-size:.75rem;color:var(--text2);margin-top:1rem;">URLs are valid for 1 year.</p>
+    <p style="font-size:.75rem;color:var(--text2);margin-top:1rem;">URLs are valid for 1 year. You need to generate a new URL if you change your password.</p>
   </div>
 </div>
 
@@ -189,7 +199,7 @@ ${setupHeader({ base })}
 </details>
 
 </main>
-<footer>&copy; 2026 Harvia</footer>
+<footer>Created by <a href="https://www.harvialabs.com/" target="_blank" rel="noopener" style="color:inherit;">Harvia Labs</a>. &copy; 2026 Harvia</footer>
 </body>
 </html>`;
   return new Response(html, { headers: { "Content-Type": "text/html;charset=UTF-8" } });
