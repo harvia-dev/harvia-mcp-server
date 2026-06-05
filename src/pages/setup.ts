@@ -60,8 +60,8 @@ ${setupHeader()}
 <div class="card">
 <div class="card-body">
   <p class="tagline">Let's sauna.</p>
-  <h1>Connect Harvia to Claude</h1>
-  <p class="subtitle">Sign in with your MyHarvia account to get a personal URL for Claude.</p>
+  <h1>Start using Harvia MCP server</h1>
+  <p class="subtitle">Sign in with your MyHarvia account to get a personal URL for using the MCP server and step-by-step instructions.</p>
   <form method="POST" action="${escapeHtml(base + "/setup")}">
     ${hasError ? `<div class="error-msg">Incorrect email or password. Please try again.</div>` : ""}
     <label for="email">Email</label>

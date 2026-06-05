@@ -149,7 +149,7 @@ ${setupHeader({ base })}
           Only available on <strong>personal accounts</strong>. Team workspace users need to contact their admin.<br>
           Free plan users can currently have <strong>one custom connector</strong> at a time.
         </div>
-        <div class="step-row"><div class="step-dot">1</div><p>Open <a href="https://claude.ai" target="_blank" rel="noopener" style="color:var(--red);">claude.ai</a> <span style="color:var(--text2);">(These instructions are for the online version)</span></p></div>
+        <div class="step-row"><div class="step-dot">1</div><p>Open <a href="https://claude.ai" target="_blank" rel="noopener" style="color:var(--red);">claude.ai</a> <span style="color:var(--text2);">(These instructions are for the online version. Currently, it is not possible to set up Harvia MCP server in the desktop or mobile application. However, you will be able to use it through the applications after setup.)</span></p></div>
         <div class="step-row"><div class="step-dot">2</div><p>Click <strong>Customize</strong> in the left sidebar</p></div>
         <div class="step-row"><div class="step-dot">3</div><p>Select <strong>Connectors</strong></p></div>
         <div class="step-row"><div class="step-dot">4</div><p>Press the <strong>+</strong> icon in the top right corner</p></div>
