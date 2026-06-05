@@ -275,22 +275,43 @@ const BRAND_CSS = `
     --red:#ED1C24;--deep-red:#C01718;--near-black:#1A0000;
     --text:#505045;--text2:#727266;--warm-gray:#EAE8E0;
     --light-gray:#D9D6C8;--white:#fff;--cream:#FEFCF3;
-    --border:rgba(80,80,69,0.15);
+    --bg:#F5F3EE;--border:rgba(80,80,69,0.15);
   }
-  body{font-family:'Noto Sans',sans-serif;background:var(--warm-gray);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
+  body{font-family:'Noto Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
   h1,h2,h3{font-family:'Montserrat',sans-serif;font-weight:700;}
 `;
 
 function setupHeader(): string {
-  return `<header style="background:var(--red);padding:.6rem 1.25rem;display:flex;align-items:center;">
-  <img src="${HARVIA_LOGO}" alt="Harvia" style="height:36px;width:auto;display:block;">
+  return `<header style="background:var(--light-gray);border-bottom:1px solid var(--border);padding:0;display:flex;align-items:stretch;height:80px;">
+  <div style="width:80px;height:80px;overflow:hidden;flex-shrink:0;">
+    <img src="${HARVIA_LOGO}" alt="Harvia" style="width:88px;height:88px;margin:-4px;display:block;">
+  </div>
 </header>`;
 }
 
-function handleSetupPage(request: Request): Response {
+async function handleSetupPage(request: Request, env: Env): Promise<Response> {
   const url = new URL(request.url);
-  const hasError = url.searchParams.has("error");
   const base = getPublicBase(request);
+  const ms = url.searchParams.get("s");
+
+  // If a valid manage session exists, skip re-auth and generate a new token directly
+  if (ms) {
+    const msData = await env.SESSIONS.get<{ email: string }>(`manage:${ms}`, "json");
+    if (msData) {
+      const list = await env.SESSIONS.get<{token:string;createdAt:number}[]>(`user:${msData.email}`, "json") ?? [];
+      let templateSession: Session | null = null;
+      for (const e of list) {
+        const s = await env.SESSIONS.get<Session>(`session:${e.token}`, "json");
+        if (s) { templateSession = s; break; }
+      }
+      if (templateSession) {
+        const sessionToken = await createMcpSession(env, msData.email, templateSession);
+        return renderSetupSuccess(request, env, msData.email, sessionToken, ms);
+      }
+    }
+  }
+
+  const hasError = url.searchParams.has("error");
   const html = `<!DOCTYPE html>
 <html lang="en">
 <head>
@@ -346,19 +367,7 @@ async function createManageSession(env: Env, email: string): Promise<string> {
   return ms;
 }
 
-async function handleSetupSubmit(request: Request, env: Env): Promise<Response> {
-  const base = getPublicBase(request);
-  const form = await request.formData();
-  const email = ((form.get("email") as string) ?? "").trim();
-  const password = (form.get("password") as string) ?? "";
-
-  let session: Session;
-  try {
-    session = await loginWithCredentials(email, password);
-  } catch {
-    return Response.redirect(`${base}/setup?error=1`, 302);
-  }
-
+async function createMcpSession(env: Env, email: string, session: Session): Promise<string> {
   const sessionToken = generateToken();
   await env.SESSIONS.put(`session:${sessionToken}`, JSON.stringify(session), {
     expirationTtl: 365 * 24 * 60 * 60,
@@ -366,12 +375,14 @@ async function handleSetupSubmit(request: Request, env: Env): Promise<Response> 
   const existing = await env.SESSIONS.get<{token:string;createdAt:number}[]>(`user:${email}`, "json") ?? [];
   existing.push({ token: sessionToken, createdAt: Date.now() });
   await env.SESSIONS.put(`user:${email}`, JSON.stringify(existing));
+  return sessionToken;
+}
 
-  // Build the full page: new URL + install instructions + all URLs
+async function renderSetupSuccess(request: Request, env: Env, email: string, sessionToken: string, ms: string): Promise<Response> {
+  const base = getPublicBase(request);
   const mcpUrl = `${base}/mcp?token=${sessionToken}`;
   const cmd = `claude mcp add harvia --transport http "${mcpUrl}" -s user`;
 
-  // Load all active sessions for this user
   const allList = await env.SESSIONS.get<{token:string;createdAt:number}[]>(`user:${email}`, "json") ?? [];
   const alive = (await Promise.all(
     allList.map(async e => {
@@ -379,7 +390,6 @@ async function handleSetupSubmit(request: Request, env: Env): Promise<Response> 
       return exists ? e : null;
     })
   )).filter(Boolean) as {token:string;createdAt:number}[];
-  const ms = await createManageSession(env, email);
 
   const urlRows = alive.sort((a,b) => b.createdAt - a.createdAt).map(e => {
     const d = new Date(e.createdAt);
@@ -408,8 +418,8 @@ ${BRAND_FONTS}
 ${BRAND_CSS}
 main{flex:1;padding:2rem 1rem;display:flex;flex-direction:column;align-items:center;}
 .card{background:var(--white);border-radius:12px;border:1px solid var(--border);width:100%;max-width:580px;overflow:hidden;margin-bottom:1rem;}
-.card-header{background:var(--near-black);padding:.9rem 1.4rem;display:flex;align-items:center;gap:.6rem;}
-.card-header h2{font-size:.875rem;color:white;font-weight:600;}
+.card-header{background:var(--light-gray);padding:.9rem 1.4rem;display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--border);}
+.card-header h2{font-size:.875rem;color:var(--text);font-weight:600;}
 .step-badge{width:22px;height:22px;border-radius:50%;background:var(--red);color:white;font-family:'Montserrat',sans-serif;font-weight:700;font-size:.7rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
 .card-body{padding:1.25rem 1.5rem;}
 .url-box{background:var(--cream);border:1px solid var(--light-gray);border-radius:6px;padding:.7rem 1rem;font-family:monospace;font-size:.78rem;color:var(--text);word-break:break-all;margin:.6rem 0 .8rem;}
@@ -496,7 +506,7 @@ ${setupHeader()}
     <tbody>${urlRows}</tbody>
   </table>
   <div class="table-footer">
-    <a href="${escapeHtml(base+"/setup")}" class="btn btn-red" style="text-decoration:none;">+ Generate new URL</a>
+    <a href="${escapeHtml(base+"/setup?s="+ms)}" class="btn btn-red" style="text-decoration:none;">+ Generate new URL</a>
     ${alive.length > 1 ? `<form method="POST" action="${escapeHtml(base+"/revoke-all?s="+ms)}">
       <button type="submit" class="btn btn-danger" onclick="return confirm('Revoke all ${alive.length} URLs?')">Revoke all</button>
     </form>` : ""}
@@ -508,6 +518,24 @@ ${setupHeader()}
 </body>
 </html>`;
   return new Response(html, { headers: { "Content-Type": "text/html;charset=UTF-8" } });
+}
+
+async function handleSetupSubmit(request: Request, env: Env): Promise<Response> {
+  const base = getPublicBase(request);
+  const form = await request.formData();
+  const email = ((form.get("email") as string) ?? "").trim();
+  const password = (form.get("password") as string) ?? "";
+
+  let session: Session;
+  try {
+    session = await loginWithCredentials(email, password);
+  } catch {
+    return Response.redirect(`${base}/setup?error=1`, 302);
+  }
+
+  const sessionToken = await createMcpSession(env, email, session);
+  const ms = await createManageSession(env, email);
+  return renderSetupSuccess(request, env, email, sessionToken, ms);
 }
 
 
@@ -623,9 +651,9 @@ ${BRAND_FONTS}
 ${BRAND_CSS}
 main{flex:1;padding:2rem 1rem;display:flex;flex-direction:column;align-items:center;}
 .card{background:var(--white);border-radius:12px;border:1px solid var(--border);width:100%;max-width:640px;overflow:hidden;margin-bottom:1rem;}
-.card-header{background:var(--near-black);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;}
-.card-header h2{font-size:.9rem;color:white;font-weight:600;}
-.card-header span{font-size:.8rem;color:rgba(255,255,255,.6);}
+.card-header{background:var(--light-gray);padding:1rem 1.5rem;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid var(--border);}
+.card-header h2{font-size:.9rem;color:var(--text);font-weight:600;}
+.card-header span{font-size:.8rem;color:var(--text2);}
 table{width:100%;border-collapse:collapse;}
 th{text-align:left;font-size:.72rem;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text2);padding:.65rem 1rem;border-bottom:1px solid var(--border);background:var(--warm-gray);}
 td{padding:.7rem 1rem;border-bottom:1px solid var(--border);vertical-align:middle;}
@@ -680,7 +708,7 @@ ${setupHeader()}
     <tbody>${rows}</tbody>
   </table>
   <div class="footer-row">
-    <a href="${escapeHtml(base + "/setup")}" class="new-btn">+ Generate new URL</a>
+    <a href="${escapeHtml(base + "/setup?s=" + ms)}" class="new-btn">+ Generate new URL</a>
     ${alive.length > 0 ? `<form method="POST" action="${escapeHtml(base + "/revoke-all?s=" + ms)}">
       <button type="submit" class="revoke-all-btn" onclick="return confirm('Revoke all ${alive.length} URL${alive.length !== 1 ? "s" : ""}? All Claude sessions will lose access.')">Revoke all</button>
     </form>` : ""}
@@ -967,7 +995,7 @@ export default {
         return handleOAuthMetadata(request);
 
       case "/setup":
-        if (request.method === "GET") return handleSetupPage(request);
+        if (request.method === "GET") return handleSetupPage(request, env);
         if (request.method === "POST") return handleSetupSubmit(request, env);
         return new Response("Method Not Allowed", { status: 405 });
 
