@@ -47,7 +47,12 @@ main{flex:1;padding:2rem 1rem;display:flex;flex-direction:column;align-items:cen
 .card{background:var(--white);border-radius:12px;border:1px solid var(--border);width:100%;max-width:580px;overflow:hidden;margin-bottom:1rem;}
 .card-header{background:var(--light-gray);padding:.9rem 1.4rem;display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--border);}
 .card-header h2{font-size:.875rem;color:var(--text);font-weight:600;}
-.step-badge{width:22px;height:22px;border-radius:50%;background:var(--red);color:white;font-family:'Montserrat',sans-serif;font-weight:700;font-size:.7rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.instruction{border:1px solid var(--border);border-radius:8px;margin-bottom:.75rem;overflow:hidden;}
+.instruction summary{list-style:none;cursor:pointer;padding:.7rem 1rem;font-family:'Montserrat',sans-serif;font-weight:600;font-size:.84rem;color:var(--text);display:flex;align-items:center;gap:.5rem;background:var(--bg);}
+.instruction summary::-webkit-details-marker{display:none;}
+.instruction summary::before{content:'▶';font-size:.55rem;color:var(--text2);transition:transform .15s;flex-shrink:0;}
+.instruction[open]>summary::before{transform:rotate(90deg);}
+.instruction-body{padding:.9rem 1rem 1rem;border-top:1px solid var(--border);}
 .card-body{padding:1.25rem 1.5rem;}
 .url-box{background:var(--cream);border:1px solid var(--light-gray);border-radius:6px;padding:.7rem 1rem;font-family:monospace;font-size:.78rem;color:var(--text);word-break:break-all;margin:.6rem 0 .8rem;}
 .btn{display:inline-flex;align-items:center;padding:.4rem .9rem;border:none;border-radius:5px;font-family:'Montserrat',sans-serif;font-weight:600;font-size:.78rem;cursor:pointer;transition:all .15s;}
@@ -69,7 +74,6 @@ main{flex:1;padding:2rem 1rem;display:flex;flex-direction:column;align-items:cen
 .notice-beta strong{font-weight:600;}
 details.card>summary{list-style:none;cursor:pointer;}
 details.card>summary::-webkit-details-marker{display:none;}
-details.card>summary.card-header{cursor:pointer;}
 details.card>summary.card-header:hover{filter:brightness(.97);}
 table{width:100%;border-collapse:collapse;}
 th{text-align:left;font-size:.72rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);padding:.6rem 1rem;border-bottom:1px solid var(--border);background:var(--warm-gray);}
@@ -120,9 +124,9 @@ ${setupHeader({ base })}
 <main>
 
 <div class="card">
-  <div class="card-header"><div class="step-badge">1</div><h2>Your personal Harvia MCP URL</h2></div>
+  <div class="card-header"><h2>Your personal Harvia MCP server URL</h2></div>
   <div class="card-body">
-    <p style="font-size:.84rem;color:var(--text2);">This URL connects Claude to your Harvia account. Keep it private — treat it like a password.</p>
+    <p style="font-size:.84rem;color:var(--text2);">This URL allows using the Harvia MCP server with your Harvia account. Keep it private and treat it like a password.</p>
     <div id="url-box" class="url-box" data-url="${escapeHtml(mcpUrl)}" data-visible="0">••••••••••••••••••••••••••••••••••••••••</div>
     <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
       <button class="btn btn-red" onclick="copyText('${escapeHtml(mcpUrl)}',this)">Copy URL</button>
@@ -134,56 +138,63 @@ ${setupHeader({ base })}
 </div>
 
 <div class="card">
-  <div class="card-header"><div class="step-badge">2</div><h2>Add to your Claude account</h2></div>
+  <div class="card-header"><h2>Getting started with Harvia MCP server</h2></div>
   <div class="card-body">
-    <div class="notice-beta">
-      <strong>Beta feature</strong> — Connectors in Claude.ai are currently in beta and subject to change.<br>
-      Only available on <strong>personal accounts</strong>. Team workspace users need to contact their admin.<br>
-      Free plan users can currently have <strong>one custom connector</strong> at a time.
-    </div>
-    <div class="step-row"><div class="step-dot">1</div><p>Open <a href="https://claude.ai" target="_blank" rel="noopener" style="color:var(--red);">claude.ai</a></p></div>
-    <div class="step-row"><div class="step-dot">2</div><p>Click <strong>Customize</strong> in the left sidebar</p></div>
-    <div class="step-row"><div class="step-dot">3</div><p>Select <strong>Connectors</strong></p></div>
-    <div class="step-row"><div class="step-dot">4</div><p>Press the <strong>+</strong> icon in the top right corner</p></div>
-    <div class="step-row"><div class="step-dot">5</div><p>Select <strong>Add custom connector</strong></p></div>
-    <div class="step-row"><div class="step-dot">6</div><p>Give the server a name (e.g. <strong>"Harvia"</strong>) and paste your URL from above</p></div>
-    <div class="step-row"><div class="step-dot">7</div><p><strong>Save</strong> — your Harvia devices are now available in Claude. You may need to start a new chat or restart Claude for the changes to take effect.</p></div>
-    <p style="font-size:.8rem;color:var(--text2);margin-top:.9rem;line-height:1.6;">You can edit the connector settings from the same menu to customize which commands require your permission before running.</p>
-    <p style="font-size:.8rem;color:var(--text2);margin-top:.75rem;line-height:1.6;">When you're done setting up, you can <a href="${escapeHtml(base + "/setup")}" style="color:var(--red);text-decoration:none;">log out here.</a></p>
+
+    <details class="instruction" open>
+      <summary>Claude</summary>
+      <div class="instruction-body">
+        <div class="notice-beta">
+          <strong>Beta feature</strong> — Connectors in Claude.ai are currently in beta and subject to change.<br>
+          Only available on <strong>personal accounts</strong>. Team workspace users need to contact their admin.<br>
+          Free plan users can currently have <strong>one custom connector</strong> at a time.
+        </div>
+        <div class="step-row"><div class="step-dot">1</div><p>Open <a href="https://claude.ai" target="_blank" rel="noopener" style="color:var(--red);">claude.ai</a> <span style="color:var(--text2);">(These instructions are for the online version)</span></p></div>
+        <div class="step-row"><div class="step-dot">2</div><p>Click <strong>Customize</strong> in the left sidebar</p></div>
+        <div class="step-row"><div class="step-dot">3</div><p>Select <strong>Connectors</strong></p></div>
+        <div class="step-row"><div class="step-dot">4</div><p>Press the <strong>+</strong> icon in the top right corner</p></div>
+        <div class="step-row"><div class="step-dot">5</div><p>Select <strong>Add custom connector</strong></p></div>
+        <div class="step-row"><div class="step-dot">6</div><p>Give the server a name (e.g. <strong>"Harvia"</strong>) and paste your URL from above</p></div>
+        <div class="step-row"><div class="step-dot">7</div><p><strong>Save</strong> — your Harvia devices are now available in Claude. You may need to start a new chat or restart Claude for the changes to take effect.</p></div>
+        <p style="font-size:.8rem;color:var(--text2);margin-top:.9rem;line-height:1.6;">You can edit the connector settings from the same menu to customize which commands require your permission before running.</p>
+        <p style="font-size:.8rem;color:var(--text2);margin-top:.75rem;line-height:1.6;">When you're done setting up, you can <a href="${escapeHtml(base + "/setup")}" style="color:var(--red);text-decoration:none;">log out here.</a></p>
+      </div>
+    </details>
+
+    <details class="instruction">
+      <summary>Claude Code</summary>
+      <div class="instruction-body">
+        <div class="tabs">
+          <div class="tab active" data-os="win" onclick="switchTab('win')">Windows</div>
+          <div class="tab" data-os="mac" onclick="switchTab('mac')">macOS</div>
+        </div>
+        <div class="tab-panel active" data-os="win">
+          <div class="step-row"><div class="step-dot">1</div><p>Open <strong>PowerShell</strong></p></div>
+          <div class="step-row"><div class="step-dot">2</div><p>Run this command:</p></div>
+          <div class="cmd-box">${escapeHtml(cmd)}</div>
+          <button class="btn btn-red" onclick="copyText('${escapeHtml(cmd)}',this)">Copy command</button>
+          <div class="step-row" style="margin-top:.75rem;"><div class="step-dot">3</div><p>Start a <strong>new Claude Code session</strong> — your Harvia devices will be available.</p></div>
+        </div>
+        <div class="tab-panel" data-os="mac">
+          <div class="step-row"><div class="step-dot">1</div><p>Open <strong>Terminal</strong></p></div>
+          <div class="step-row"><div class="step-dot">2</div><p>Run this command:</p></div>
+          <div class="cmd-box">${escapeHtml(cmd)}</div>
+          <button class="btn btn-red" onclick="copyText('${escapeHtml(cmd)}',this)">Copy command</button>
+          <div class="step-row" style="margin-top:.75rem;"><div class="step-dot">3</div><p>Start a <strong>new Claude Code session</strong> — your Harvia devices will be available.</p></div>
+        </div>
+        <div class="note">You can also add this server directly to Claude's MCP config JSON file under <code style="font-size:.76rem;">mcpServers</code>.</div>
+        <p style="font-size:.8rem;color:var(--text2);margin-top:.75rem;line-height:1.6;">When you're done setting up, you can <a href="${escapeHtml(base + "/setup")}" style="color:var(--red);text-decoration:none;">log out here.</a></p>
+      </div>
+    </details>
+
+    <p style="font-size:.78rem;color:var(--text2);margin-top:.5rem;font-style:italic;">More instructions coming soon</p>
+
   </div>
 </div>
 
-<details class="card">
-  <summary class="card-header" style="display:flex;align-items:center;gap:.6rem;">
-    <div class="step-badge" style="background:var(--text2);">+</div>
-    <h2>Also works with Claude Code <span style="font-size:.75rem;font-weight:400;color:var(--text2);margin-left:.4rem;">— click to expand</span></h2>
-  </summary>
-  <div class="card-body">
-    <div class="tabs">
-      <div class="tab active" data-os="win" onclick="switchTab('win')">Windows</div>
-      <div class="tab" data-os="mac" onclick="switchTab('mac')">macOS</div>
-    </div>
-    <div class="tab-panel active" data-os="win">
-      <div class="step-row"><div class="step-dot">1</div><p>Open <strong>PowerShell</strong> (press Win, type PowerShell, press Enter)</p></div>
-      <div class="step-row"><div class="step-dot">2</div><p>Run this command:</p></div>
-      <div class="cmd-box">${escapeHtml(cmd)}</div>
-      <button class="btn btn-gray" onclick="copyText('${escapeHtml(cmd)}',this)">Copy command</button>
-      <div class="step-row" style="margin-top:.75rem;"><div class="step-dot">3</div><p>Start a <strong>new Claude Code session</strong> — your Harvia devices will be available.</p></div>
-    </div>
-    <div class="tab-panel" data-os="mac">
-      <div class="step-row"><div class="step-dot">1</div><p>Open <strong>Terminal</strong> (Applications → Utilities → Terminal)</p></div>
-      <div class="step-row"><div class="step-dot">2</div><p>Run this command:</p></div>
-      <div class="cmd-box">${escapeHtml(cmd)}</div>
-      <button class="btn btn-gray" onclick="copyText('${escapeHtml(cmd)}',this)">Copy command</button>
-      <div class="step-row" style="margin-top:.75rem;"><div class="step-dot">3</div><p>Start a <strong>new Claude Code session</strong> — your Harvia devices will be available.</p></div>
-    </div>
-    <div class="note">You can also add this server directly to Claude's MCP config JSON file under <code style="font-size:.76rem;">mcpServers</code>. Don't have Claude Code? Install it: <code style="font-size:.76rem;">npm install -g @anthropic-ai/claude-code</code></div>
-  </div>
-</details>
-
 <details class="card" id="manage-urls">
   <summary class="card-header" style="display:flex;align-items:center;gap:.6rem;cursor:pointer;">
-    <div class="step-badge" style="background:var(--text2);">↓</div><h2>All your active URLs <span style="font-size:.75rem;font-weight:400;color:var(--text2);margin-left:.4rem;">— click to expand</span></h2>
+    <h2>All your active URLs <span style="font-size:.75rem;font-weight:400;color:var(--text2);margin-left:.4rem;">— click to expand</span></h2>
   </summary>
   <table>
     <thead><tr><th>Created</th><th>Token</th><th></th></tr></thead>
