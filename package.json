@@ -1,0 +1,24 @@
+{
+  "name": "harvia-mcp-server",
+  "version": "0.1.0",
+  "description": "MCP server for the Harvia MyHarvia Cloud API",
+  "type": "module",
+  "main": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "tsx src/index.ts",
+    "deploy": "wrangler deploy",
+    "dev:worker": "wrangler dev"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^4.0.0",
+    "@types/node": "^20.0.0",
+    "tsx": "^4.0.0",
+    "typescript": "^5.0.0",
+    "wrangler": "^3.0.0"
+  }
+}
