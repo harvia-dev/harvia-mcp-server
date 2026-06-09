@@ -73,4 +73,8 @@ npx wrangler deploy  # deploy to Cloudflare
 
 ## Created by
 
-[Harvia Labs](https://www.harvialabs.com/) · © 2026 Harvia
+[Harvia Labs](https://www.harvialabs.com/)
+
+## License
+
+This software is provided with the [MIT license](https://opensource.org/license/mit)
