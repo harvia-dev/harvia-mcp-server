@@ -2,7 +2,7 @@
 
 A [Model Context Protocol](https://modelcontextprotocol.io) server that exposes the Harvia [MyHarvia Cloud API](https://harvia.io/api) to AI assistants. Lets Claude (or any MCP-compatible client) control and monitor Harvia sauna devices through natural language.
 
-Deployed as a **Cloudflare Worker** with a web-based setup UI. Users sign in with their MyHarvia credentials, receive a personal MCP URL, and add it to their Claude account — no local installation required.
+Deployed as a **Cloudflare Worker** with a web-based setup UI. No local installation required — users connect via the [setup page](https://www.harvialabs.com/harvia-mcp/setup).
 
 The MCP server includes main features of the device, events and data services of the [MyHarvia Cloud API](https://harvia.io/api).
 
@@ -18,13 +18,13 @@ The MCP server includes main features of the device, events and data services of
 
 ## How it works
 
-1. A user visits the [setup page](https://www.harvialabs.com/harvia-mcp/setup) and signs in with their MyHarvia credentials
-2. The server authenticates against the MyHarvia API and stores the session in **Cloudflare KV**
-3. The user receives a personal MCP URL
-4. The user adds this URL as a connector in Claude
-5. When Claude calls a tool, the Worker looks up the session, refreshes the Harvia token if needed, and proxies the request to the appropriate GraphQL endpoint
+There are two ways to connect:
 
-URLs are valid for 1 year and can be revoked at any time from the setup page.
+**OAuth 2.1 (primary)** — Add the MCP URL as a connector in Claude.ai. Claude handles the OAuth flow automatically and prompts you to sign in with your MyHarvia account.
+
+**Personal URL (alternative)** — Visit the [setup page](https://www.harvialabs.com/harvia-mcp/setup), sign in with your MyHarvia credentials, and receive a personal MCP URL to add directly to any MCP client. URLs are valid for 1 year and can be revoked at any time from the setup page.
+
+In both cases, when Claude calls a tool the Worker looks up the session, refreshes the Harvia token if needed, and proxies the request to the appropriate GraphQL endpoint.
 
 ## Architecture
 
@@ -38,10 +38,10 @@ src/
   auth.ts            — MyHarvia API authentication (login, token refresh)
   config.ts          — Harvia endpoint discovery (cached from api.harvia.io)
   graphql-client.ts  — Authenticated GraphQL request helper
-  oauth.ts           — OAuth 2.0 + PKCE handlers (for Claude Code integration)
+  oauth.ts           — OAuth 2.1 + PKCE handlers (authorize, login, token, registration, discovery)
   mcp.ts             — MCP endpoint: token auth + JSON-RPC tool dispatch
   pages/
-    setup.ts         — Login page and form submission
+    setup.ts         — Setup page: OAuth instructions and personal URL login form
     success.ts       — Post-login page: URL display, setup instructions, URL management
     revoke.ts        — Token revocation handlers
   tools/
@@ -53,9 +53,10 @@ src/
 **Storage (Cloudflare KV):**
 | Key | Contents | TTL |
 |-----|----------|-----|
-| `session:{token}` | Harvia idToken, refreshToken, email, expiry | 1 year |
+| `session:{token}` | Harvia idToken, refreshToken, email, expiry | 30 days (OAuth) / 1 year (personal URL) |
 | `manage:{token}` | Short-lived web session for the setup UI | 1 hour |
 | `user:{email}` | List of active tokens for a user | — |
+| `code:{code}` | OAuth authorization code + PKCE challenge | 5 minutes |
 
 ## Development
 
