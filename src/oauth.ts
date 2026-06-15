@@ -4,6 +4,7 @@
 import { Env, Session } from "./types.js";
 import { generateToken, sha256Base64Url, escapeHtml, jsonResponse, getPublicBase } from "./utils.js";
 import { loginWithCredentials } from "./auth.js";
+import { BRAND_FONTS, BRAND_CSS, setupHeader } from "./templates.js";
 
 export function handleOAuthMetadata(request: Request): Response {
   const base = getPublicBase(request);
@@ -26,6 +27,23 @@ export function handleOAuthMetadata(request: Request): Response {
   });
 }
 
+export function handleProtectedResourceMetadata(request: Request): Response {
+  const url = new URL(request.url);
+  const forwardedHost = request.headers.get("x-forwarded-host");
+  const forwardedProto = request.headers.get("x-forwarded-proto") ?? url.protocol.replace(":", "");
+  const origin = forwardedHost
+    ? `${forwardedProto}://${forwardedHost}`
+    : `${url.protocol}//${url.host}`;
+  const base = getPublicBase(request);
+  return jsonResponse({
+    resource: `${base}/mcp`,
+    authorization_servers: [origin],
+    bearer_methods_supported: ["header"],
+    scopes_supported: ["mcp:tools"],
+    resource_name: "Harvia MCP Server",
+  });
+}
+
 export async function handleClientRegistration(request: Request): Promise<Response> {
   const body = (await request.json()) as Record<string, unknown>;
   return jsonResponse({
@@ -42,9 +60,7 @@ export async function handleClientRegistration(request: Request): Promise<Respon
 
 export function handleAuthorize(request: Request): Response {
   const url = new URL(request.url);
-  const errorHtml = url.searchParams.has("error")
-    ? `<p class="error">Invalid email or password. Please try again.</p>`
-    : "";
+  const hasError = url.searchParams.has("error");
 
   const params = new URLSearchParams({
     redirect_uri: url.searchParams.get("redirect_uri") ?? "",
@@ -54,37 +70,56 @@ export function handleAuthorize(request: Request): Response {
   });
 
   const html = `<!DOCTYPE html>
-<!-- login form posts to /harvia-mcp/login -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Sign in — Harvia</title>
+<title>Sign in to Harvia</title>
+${BRAND_FONTS}
 <style>
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:system-ui,sans-serif;background:#f4f4f4;display:flex;justify-content:center;align-items:center;min-height:100vh}
-  .card{background:#fff;padding:2rem;border-radius:12px;box-shadow:0 2px 16px rgba(0,0,0,.1);width:100%;max-width:360px}
-  h1{font-size:1.3rem;margin-bottom:1.5rem;color:#111}
-  label{display:block;font-size:.85rem;color:#555;margin-bottom:.25rem;margin-top:.75rem}
-  input{width:100%;padding:.6rem .75rem;border:1px solid #ddd;border-radius:6px;font-size:1rem}
-  input:focus{outline:none;border-color:#c0392b}
-  button{margin-top:1.25rem;width:100%;padding:.75rem;background:#c0392b;color:#fff;border:none;border-radius:6px;font-size:1rem;cursor:pointer}
-  button:hover{background:#a93226}
-  .error{color:#c0392b;font-size:.85rem;margin-top:.5rem}
+${BRAND_CSS}
+main{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;}
+.card{background:var(--white);border-radius:12px;border:1px solid var(--border);width:100%;max-width:400px;overflow:hidden;}
+.card-body{padding:2rem;}
+.tagline{font-family:'Montserrat',sans-serif;font-weight:700;font-size:.85rem;color:var(--text2);letter-spacing:.05em;margin-bottom:1.25rem;}
+h1{font-size:1.3rem;color:var(--text);margin-bottom:.4rem;}
+.subtitle{font-size:.875rem;color:var(--text2);margin-bottom:1.75rem;line-height:1.5;}
+label{display:block;font-size:.8rem;font-weight:500;color:var(--text2);margin-bottom:.3rem;margin-top:1rem;letter-spacing:.03em;}
+input{width:100%;padding:.65rem .8rem;border:1px solid var(--light-gray);border-radius:6px;font-size:.95rem;font-family:'Noto Sans',sans-serif;color:var(--text);background:var(--cream);transition:border-color .15s;}
+input:focus{outline:none;border-color:var(--red);}
+.error-msg{background:#FFF0F0;border:1px solid #f5c4c4;border-radius:6px;padding:.65rem .9rem;font-size:.825rem;color:#7a2020;margin-top:1rem;}
+button[type=submit]{margin-top:1.5rem;width:100%;padding:.8rem;background:var(--red);color:white;border:none;border-radius:6px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;letter-spacing:.03em;transition:background .15s;}
+button[type=submit]:hover{background:var(--deep-red);}
+footer{text-align:center;padding:1.5rem;font-size:.75rem;color:var(--text2);}
+.hint{font-size:.75rem;color:var(--text2);margin-top:1.25rem;}
+.forgot-btn{font-size:.75rem;color:var(--text2);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;font-family:'Noto Sans',sans-serif;margin-top:.5rem;display:block;}
+.forgot-btn:hover{color:var(--text);}
+.forgot-info{display:none;margin-top:.6rem;background:var(--warm-gray);border-radius:6px;padding:.65rem .9rem;font-size:.825rem;color:var(--text2);line-height:1.5;}
+.forgot-info.open{display:block;}
 </style>
 </head>
 <body>
+${setupHeader()}
+<main>
 <div class="card">
-  <h1>Sign in to Harvia</h1>
+<div class="card-body">
+  <h1>Sign in</h1>
+  <p class="subtitle">Sign in with your MyHarvia account to connect to Harvia MCP server.</p>
   <form method="POST" action="${escapeHtml(getPublicBase(request) + "/login?" + params.toString())}">
-    ${errorHtml}
+    ${hasError ? `<div class="error-msg">Incorrect email or password. Please try again.</div>` : ""}
     <label for="email">Email</label>
-    <input type="email" id="email" name="email" required autocomplete="email">
+    <input type="email" id="email" name="email" required autocomplete="email" placeholder="you@example.com">
     <label for="password">Password</label>
-    <input type="password" id="password" name="password" required autocomplete="current-password">
+    <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="••••••••">
     <button type="submit">Sign in</button>
   </form>
+  <p class="hint">Use your MyHarvia credentials &mdash; the same ones you use in the MyHarvia app.</p>
+  <button class="forgot-btn" onclick="document.getElementById('forgot-info').classList.toggle('open')">Forgot password?</button>
+  <div class="forgot-info" id="forgot-info">You can restore a forgotten password in the MyHarvia app or Harvia Web Portal.</div>
 </div>
+</div>
+</main>
+<footer>Created by <a href="https://www.harvialabs.com/" target="_blank" rel="noopener" style="color:inherit;">Harvia Labs</a>. &copy; 2026 Harvia</footer>
 </body>
 </html>`;
 
@@ -130,8 +165,57 @@ export async function handleLogin(request: Request, env: Env): Promise<Response>
 
   const callback = new URL(redirectUri);
   callback.searchParams.set("code", code);
-  if (state) callback.searchParams.set("state", state);
-  return Response.redirect(callback.toString(), 302);
+  callback.searchParams.set("state", state);
+  const callbackUrlHtml = escapeHtml(callback.toString());
+  const callbackUrlJs = JSON.stringify(callback.toString());
+
+  const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="refresh" content="2;url=${callbackUrlHtml}">
+<title>Signed in — Harvia</title>
+${BRAND_FONTS}
+<style>
+${BRAND_CSS}
+main{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;}
+.card{background:var(--white);border-radius:12px;border:1px solid var(--border);width:100%;max-width:400px;overflow:hidden;}
+.card-body{padding:2rem;text-align:center;}
+.check{width:52px;height:52px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;}
+.check svg{width:26px;height:26px;}
+h1{font-size:1.3rem;color:var(--text);margin-bottom:.5rem;}
+.subtitle{font-size:.875rem;color:var(--text2);line-height:1.5;}
+.dots{display:inline-block;margin-left:2px;}
+footer{text-align:center;padding:1.5rem;font-size:.75rem;color:var(--text2);}
+</style>
+</head>
+<body>
+${setupHeader()}
+<main>
+<div class="card">
+<div class="card-body">
+  <div class="check">
+    <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <polyline points="20 6 9 17 4 12"/>
+    </svg>
+  </div>
+  <h1>Login successful</h1>
+  <p class="subtitle">Redirecting<span class="dots" id="dots"></span></p>
+</div>
+</div>
+</main>
+<footer>Created by <a href="https://www.harvialabs.com/" target="_blank" rel="noopener" style="color:inherit;">Harvia Labs</a>. &copy; 2026 Harvia</footer>
+<script>
+  const dots = document.getElementById('dots');
+  let i = 0;
+  setInterval(() => { dots.textContent = '.'.repeat((++i % 3) + 1); }, 400);
+  setTimeout(() => { window.location.href = ${callbackUrlJs}; }, 2000);
+</script>
+</body>
+</html>`;
+
+  return new Response(html, { headers: { "Content-Type": "text/html;charset=UTF-8" } });
 }
 
 export async function handleToken(request: Request, env: Env): Promise<Response> {

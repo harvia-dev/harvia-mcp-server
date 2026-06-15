@@ -72,6 +72,8 @@ main{flex:1;padding:2rem 1rem;display:flex;flex-direction:column;align-items:cen
 .note{font-size:.76rem;color:var(--text2);padding:.7rem 1rem;background:var(--warm-gray);border-radius:6px;margin-top:.75rem;}
 .notice-beta{background:var(--cream);border:1px solid var(--light-gray);border-radius:6px;padding:.75rem 1rem;font-size:.8rem;color:var(--text2);line-height:1.6;margin-bottom:1.1rem;}
 .notice-beta strong{font-weight:600;}
+.notice-beta ul{margin:.4rem 0 0 1.1rem;padding:0;}
+.notice-beta li{margin-bottom:.2rem;}
 details.card>summary{list-style:none;cursor:pointer;}
 details.card>summary::-webkit-details-marker{display:none;}
 details.card>summary.card-header:hover{filter:brightness(.97);}
@@ -126,7 +128,7 @@ ${setupHeader({ base })}
 <div class="card">
   <div class="card-header"><h2>Your personal Harvia MCP server URL</h2></div>
   <div class="card-body">
-    <p style="font-size:.84rem;color:var(--text2);">This URL allows using the Harvia MCP server with your Harvia account. Keep it private and treat it like a password.</p>
+    <p style="font-size:.84rem;color:var(--text2);">This URL allows using the Harvia MCP server with your MyHarvia account. Keep it private and treat it like a password.</p>
     <div id="url-box" class="url-box" data-url="${escapeHtml(mcpUrl)}" data-visible="0">••••••••••••••••••••••••••••••••••••••••</div>
     <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
       <button class="btn btn-red" onclick="copyText('${escapeHtml(mcpUrl)}',this)">Copy URL</button>
@@ -145,9 +147,11 @@ ${setupHeader({ base })}
       <summary>Claude</summary>
       <div class="instruction-body">
         <div class="notice-beta">
-          <strong>Beta feature</strong> — Connectors in Claude.ai are currently in beta and subject to change.<br>
-          Only available on <strong>personal accounts</strong>. Team workspace users need to contact their admin.<br>
-          Free plan users can currently have <strong>one custom connector</strong> at a time.
+          <strong>Beta feature</strong> — Connectors in Claude.ai are currently in beta and subject to change.
+          <ul>
+            <li>Using account-specific URLs only available on <strong>personal accounts</strong>.</li>
+            <li>Free plan users can currently have <strong>one custom connector</strong> at a time.</li>
+          </ul>
         </div>
         <div class="step-row"><div class="step-dot">1</div><p>Open <a href="https://claude.ai" target="_blank" rel="noopener" style="color:var(--red);">claude.ai</a> <span style="color:var(--text2);">(These instructions are for the online version. Currently, it is not possible to set up Harvia MCP server in the desktop or mobile application. However, you will be able to use it through the applications after setup.)</span></p></div>
         <div class="step-row"><div class="step-dot">2</div><p>Click <strong>Customize</strong> in the left sidebar</p></div>

@@ -2,7 +2,7 @@
 // tool calls to the appropriate Harvia GraphQL API.
 
 import { Env, Session } from "./types.js";
-import { corsHeaders, jsonResponse, jsonRpcOk, jsonRpcErr } from "./utils.js";
+import { corsHeaders, jsonResponse, jsonRpcOk, jsonRpcErr, getPublicBase } from "./utils.js";
 import { getValidIdToken } from "./session.js";
 import { getEndpointConfig } from "./config.js";
 import { deviceTools, handleDeviceTool } from "./tools/devices.js";
@@ -18,7 +18,7 @@ export async function handleMcp(request: Request, env: Env): Promise<Response> {
   const sessionToken = authHeader.startsWith("Bearer ")
     ? authHeader.slice(7)
     : (url.searchParams.get("token") ?? null);
-  const wwwAuth = `Bearer realm="harvia-mcp", error="invalid_token"`;
+  const wwwAuth = `Bearer realm="harvia-mcp", resource_metadata="${getPublicBase(request)}/.well-known/oauth-protected-resource"`;
   if (!sessionToken) {
     return new Response(JSON.stringify({ error: "unauthorized" }), {
       status: 401,
