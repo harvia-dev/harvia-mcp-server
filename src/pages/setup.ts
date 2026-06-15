@@ -73,6 +73,7 @@ h2{font-size:1rem;color:var(--text);margin-bottom:.4rem;}
 .notice-beta strong{font-weight:600;}
 .notice-beta ul{margin:.4rem 0 0 1.1rem;padding:0;}
 .notice-beta li{margin-bottom:.2rem;}
+.org-note{font-size:.82rem;color:var(--text2);background:var(--warm-gray);border-radius:6px;padding:.6rem .9rem;margin-bottom:.9rem;line-height:1.5;}
 .divider{display:flex;align-items:center;gap:1rem;width:100%;max-width:480px;margin:1.5rem 0;}
 .divider::before,.divider::after{content:'';flex:1;height:1px;background:var(--light-gray);}
 .divider span{font-size:.75rem;color:var(--text2);font-family:'Montserrat',sans-serif;font-weight:600;letter-spacing:.05em;}
@@ -116,6 +117,7 @@ ${setupHeader()}
             <li>Free plan users can currently have <strong>one custom connector</strong> at a time.</li>
           </ul>
         </div>
+        <p class="org-note">If your organization has already enabled the Harvia MCP server, follow steps 1–3 below, find the MCP server, and connect to it.</p>
         <div class="step-row"><div class="step-dot">1</div><p>Open <a href="https://claude.ai" target="_blank" rel="noopener" style="color:var(--red);">claude.ai</a></p></div>
         <div class="step-row"><div class="step-dot">2</div><p>Click <strong>Customize</strong> in the left sidebar</p></div>
         <div class="step-row"><div class="step-dot">3</div><p>Select <strong>Connectors</strong></p></div>
