@@ -5,7 +5,7 @@
 
 import { Env } from "./types.js";
 import { corsHeaders, jsonResponse } from "./utils.js";
-import { handleOAuthMetadata, handleClientRegistration, handleAuthorize, handleLogin, handleToken } from "./oauth.js";
+import { handleOAuthMetadata, handleProtectedResourceMetadata, handleClientRegistration, handleAuthorize, handleLogin, handleToken } from "./oauth.js";
 import { handleMcp } from "./mcp.js";
 import { handleSetupPage, handleSetupSubmit } from "./pages/setup.js";
 import { handleRevoke, handleRevokeAll } from "./pages/revoke.js";
@@ -20,6 +20,9 @@ export default {
     }
 
     switch (pathname) {
+      case "/.well-known/oauth-protected-resource":
+        return handleProtectedResourceMetadata(request);
+
       case "/.well-known/oauth-authorization-server":
         return handleOAuthMetadata(request);
 
