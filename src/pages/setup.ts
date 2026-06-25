@@ -117,10 +117,10 @@ ${setupHeader()}
             <li>Free plan users can currently have <strong>one custom connector</strong> at a time.</li>
           </ul>
         </div>
-        <p class="org-note">If your organization has already enabled the Harvia MCP server, follow steps 1–3 below, find the MCP server, and connect to it.</p>
         <div class="step-row"><div class="step-dot">1</div><p>Open <a href="https://claude.ai" target="_blank" rel="noopener" style="color:var(--red);">claude.ai</a></p></div>
         <div class="step-row"><div class="step-dot">2</div><p>Click <strong>Customize</strong> in the left sidebar</p></div>
         <div class="step-row"><div class="step-dot">3</div><p>Select <strong>Connectors</strong></p></div>
+        <p class="org-note">If you are a <strong>team workspace</strong> user, and your organization has already enabled the Harvia MCP server, find the MCP server from the list of connectors and connect to it. If you are using a <strong>personal</strong> account, continue to steps 4-6 below.</p>
         <div class="step-row"><div class="step-dot">4</div><p>Press the <strong>+</strong> icon and select <strong>Add custom connector</strong></p></div>
         <div class="step-row"><div class="step-dot">5</div><p>Give the server a name (e.g. <strong>"Harvia"</strong>), paste the URL above and click <strong>Add</strong></p></div>
         <div class="step-row"><div class="step-dot">6</div><p><strong>Connect</strong> to the server and sign in with your MyHarvia account when prompted</p></div>
