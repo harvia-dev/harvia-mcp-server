@@ -4,7 +4,7 @@
 import { Env, Session } from "./types.js";
 import { generateToken, sha256Base64Url, escapeHtml, jsonResponse, getPublicBase } from "./utils.js";
 import { loginWithCredentials } from "./auth.js";
-import { BRAND_FONTS, BRAND_CSS, setupHeader } from "./templates.js";
+import { BRAND_FONTS, stylesLink, THEME_COLOR, setupHeader, siteFooter } from "./templates.js";
 
 export function handleOAuthMetadata(request: Request): Response {
   const base = getPublicBase(request);
@@ -75,33 +75,23 @@ export function handleAuthorize(request: Request): Response {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Sign in to Harvia</title>
+${THEME_COLOR}
 ${BRAND_FONTS}
+${stylesLink(getPublicBase(request))}
 <style>
-${BRAND_CSS}
-main{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;}
-.card{background:var(--white);border-radius:12px;border:1px solid var(--border);width:100%;max-width:400px;overflow:hidden;}
-.card-body{padding:2rem;}
-.tagline{font-family:'Montserrat',sans-serif;font-weight:700;font-size:.85rem;color:var(--text2);letter-spacing:.05em;margin-bottom:1.25rem;}
-h1{font-size:1.3rem;color:var(--text);margin-bottom:.4rem;}
-.subtitle{font-size:.875rem;color:var(--text2);margin-bottom:1.75rem;line-height:1.5;}
-label{display:block;font-size:.8rem;font-weight:500;color:var(--text2);margin-bottom:.3rem;margin-top:1rem;letter-spacing:.03em;}
-input{width:100%;padding:.65rem .8rem;border:1px solid var(--light-gray);border-radius:6px;font-size:.95rem;font-family:'Noto Sans',sans-serif;color:var(--text);background:var(--cream);transition:border-color .15s;}
-input:focus{outline:none;border-color:var(--red);}
-.error-msg{background:#FFF0F0;border:1px solid #f5c4c4;border-radius:6px;padding:.65rem .9rem;font-size:.825rem;color:#7a2020;margin-top:1rem;}
-button[type=submit]{margin-top:1.5rem;width:100%;padding:.8rem;background:var(--red);color:white;border:none;border-radius:6px;font-family:'Montserrat',sans-serif;font-weight:700;font-size:.95rem;cursor:pointer;letter-spacing:.03em;transition:background .15s;}
-button[type=submit]:hover{background:var(--deep-red);}
-footer{text-align:center;padding:1.5rem;font-size:.75rem;color:var(--text2);}
-.hint{font-size:.75rem;color:var(--text2);margin-top:1.25rem;}
-.forgot-btn{font-size:.75rem;color:var(--text2);background:none;border:none;cursor:pointer;padding:0;text-decoration:underline;font-family:'Noto Sans',sans-serif;margin-top:.5rem;display:block;}
-.forgot-btn:hover{color:var(--text);}
-.forgot-info{display:none;margin-top:.6rem;background:var(--warm-gray);border-radius:6px;padding:.65rem .9rem;font-size:.825rem;color:var(--text2);line-height:1.5;}
-.forgot-info.open{display:block;}
+main{justify-content:center;}
+.column{max-width:420px;}
+.au-card h1{font-size:1.5rem;margin-bottom:.5rem;}
+.au-card .subtitle{margin-bottom:1.5rem;}
+.au-submit{width:100%;margin-top:1.75rem;padding:.9rem;font-size:.9rem;}
+.au-hint{margin-top:1.25rem;}
 </style>
 </head>
 <body>
 ${setupHeader()}
 <main>
-<div class="card">
+<div class="column">
+<div class="card au-card">
 <div class="card-body">
   <h1>Sign in</h1>
   <p class="subtitle">Sign in with your MyHarvia account to connect to Harvia MCP server.</p>
@@ -111,15 +101,16 @@ ${setupHeader()}
     <input type="email" id="email" name="email" required autocomplete="email" placeholder="you@example.com">
     <label for="password">Password</label>
     <input type="password" id="password" name="password" required autocomplete="current-password" placeholder="••••••••">
-    <button type="submit">Sign in</button>
+    <button type="submit" class="btn btn-primary au-submit">Sign in</button>
   </form>
-  <p class="hint">Use your MyHarvia credentials &mdash; the same ones you use in the MyHarvia app.</p>
+  <p class="hint au-hint">Use your MyHarvia credentials &mdash; the same ones you use in the MyHarvia app.</p>
   <button class="forgot-btn" onclick="document.getElementById('forgot-info').classList.toggle('open')">Forgot password?</button>
   <div class="forgot-info" id="forgot-info">You can restore a forgotten password in the MyHarvia app or Harvia Web Portal.</div>
 </div>
 </div>
+</div>
 </main>
-<footer>Created by <a href="https://www.harvialabs.com/" target="_blank" rel="noopener" style="color:inherit;">Harvia Labs</a>. &copy; 2026 Harvia</footer>
+${siteFooter()}
 </body>
 </html>`;
 
@@ -176,24 +167,36 @@ export async function handleLogin(request: Request, env: Env): Promise<Response>
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <meta http-equiv="refresh" content="2;url=${callbackUrlHtml}">
 <title>Signed in — Harvia</title>
+${THEME_COLOR}
 ${BRAND_FONTS}
+${stylesLink(getPublicBase(request))}
 <style>
-${BRAND_CSS}
-main{flex:1;display:flex;align-items:center;justify-content:center;padding:2rem 1rem;}
-.card{background:var(--white);border-radius:12px;border:1px solid var(--border);width:100%;max-width:400px;overflow:hidden;}
-.card-body{padding:2rem;text-align:center;}
-.check{width:52px;height:52px;background:var(--red);border-radius:50%;display:flex;align-items:center;justify-content:center;margin:0 auto 1.5rem;}
+main{justify-content:center;}
+.column{max-width:420px;}
+.au-done .card-body{text-align:center;}
+.au-done h1{font-size:1.5rem;margin-bottom:.6rem;}
+.check{
+  width:52px;height:52px;
+  background:var(--harvia-red);border-radius:var(--radius);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 1.5rem;
+}
 .check svg{width:26px;height:26px;}
-h1{font-size:1.3rem;color:var(--text);margin-bottom:.5rem;}
-.subtitle{font-size:.875rem;color:var(--text2);line-height:1.5;}
+/* The checkmark draws itself in, matching the confirmation pattern
+   used by the Labs form overlay. */
+.check svg polyline{stroke-dasharray:30;stroke-dashoffset:30;animation:check-draw .45s ease-out .15s forwards;}
+@keyframes check-draw{to{stroke-dashoffset:0;}}
+@media (prefers-reduced-motion:reduce){
+  .check svg polyline{animation:none;stroke-dashoffset:0;}
+}
 .dots{display:inline-block;margin-left:2px;}
-footer{text-align:center;padding:1.5rem;font-size:.75rem;color:var(--text2);}
 </style>
 </head>
 <body>
 ${setupHeader()}
 <main>
-<div class="card">
+<div class="column">
+<div class="card au-done">
 <div class="card-body">
   <div class="check">
     <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
@@ -204,8 +207,9 @@ ${setupHeader()}
   <p class="subtitle">Redirecting<span class="dots" id="dots"></span></p>
 </div>
 </div>
+</div>
 </main>
-<footer>Created by <a href="https://www.harvialabs.com/" target="_blank" rel="noopener" style="color:inherit;">Harvia Labs</a>. &copy; 2026 Harvia</footer>
+${siteFooter()}
 <script>
   const dots = document.getElementById('dots');
   let i = 0;

@@ -1,32 +1,47 @@
 import { HARVIA_LOGO } from "./assets.js";
+import { STYLESHEET } from "./styles.js";
 
 export const BRAND_FONTS = `<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@600;700&family=Noto+Sans:wght@300;400;500&display=swap" rel="stylesheet">`;
 
-export const BRAND_CSS = `
-  *{box-sizing:border-box;margin:0;padding:0}
-  :root{
-    --red:#ED1C24;--deep-red:#C01718;--near-black:#1A0000;
-    --text:#505045;--text2:#727266;--warm-gray:#EAE8E0;
-    --light-gray:#D9D6C8;--white:#fff;--cream:#FEFCF3;
-    --bg:#F5F3EE;--border:rgba(80,80,69,0.15);
-  }
-  body{font-family:'Noto Sans',sans-serif;background:var(--cream);color:var(--text);min-height:100vh;display:flex;flex-direction:column;}
-  h1,h2,h3{font-family:'Montserrat',sans-serif;font-weight:700;}
-`;
+/**
+ * Link to the shared stylesheet served by the /styles.css route.
+ *
+ * The href must go through the public base, not a root-absolute path: in
+ * production this worker is proxied under https://www.harvialabs.com/harvia-mcp,
+ * where "/styles.css" would resolve against harvialabs.com itself and pull in
+ * that site's stylesheet instead of ours. See getPublicBase in utils.ts.
+ *
+ * The cache buster is derived from the stylesheet itself, so editing the CSS
+ * always invalidates the cached copy without anyone having to bump a number.
+ */
+export function stylesLink(base: string): string {
+  return `<link rel="stylesheet" href="${base}/styles.css?v=${STYLESHEET.length}">`;
+}
+
+/** Sets the browser chrome to the page background instead of a light default. */
+export const THEME_COLOR = `<meta name="theme-color" content="#0a0405">`;
 
 export function setupHeader(opts?: { logoutToken?: string; base?: string }): string {
   const logoutBtn = opts?.base
-    ? `<div style="display:flex;align-items:center;padding:0 1.5rem;margin-left:auto;">
-        <a href="${opts.base}/setup" style="background:none;border:1px solid var(--border);border-radius:5px;padding:.35rem .8rem;font-family:'Montserrat',sans-serif;font-weight:600;font-size:.75rem;color:var(--text2);cursor:pointer;text-decoration:none;">Log out</a>
-      </div>`
+    ? `<a class="btn btn-ghost btn-sm header-action" href="${opts.base}/setup">Log out</a>`
     : "";
-  return `<header style="background:var(--light-gray);border-bottom:1px solid var(--border);padding:0;display:flex;align-items:stretch;height:80px;">
-  <div style="width:80px;height:80px;overflow:hidden;flex-shrink:0;">
-    <img src="${HARVIA_LOGO}" alt="Harvia" style="width:88px;height:88px;margin:-4px;display:block;">
-  </div>
-  <div style="display:flex;align-items:center;padding:0 1.5rem;">
-    <span style="font-family:'Montserrat',sans-serif;font-weight:700;font-size:1rem;color:var(--text);letter-spacing:.02em;">MCP server setup</span>
-  </div>
+  return `<header class="site-header">
+  <span class="logo-crop"><img src="${HARVIA_LOGO}" alt="Harvia" class="logo"></span>
+  <span class="header-title">MCP server setup</span>
   ${logoutBtn}
-</header>`;
+</header>
+<script>addEventListener('scroll',function(){document.querySelector('.site-header').classList.toggle('is-scrolled',window.scrollY>20);},{passive:true});</script>`;
+}
+
+export function siteFooter(): string {
+  return `<footer class="site-footer">
+  <div class="footer-row">
+    <span class="footer-logo-crop"><img src="${HARVIA_LOGO}" alt="Harvia" class="footer-logo"></span>
+    <div class="footer-meta">
+      <span>Created by <a href="https://www.harvialabs.com/" target="_blank" rel="noopener">Harvia Labs</a>. &copy; 2026 Harvia</span>
+      <a href="https://www.harvia.com/en/privacy-notice/" target="_blank" rel="noopener">Privacy</a>
+      <a href="https://www.harvia.com/en/terms-of-service/" target="_blank" rel="noopener">Terms</a>
+    </div>
+  </div>
+</footer>`;
 }

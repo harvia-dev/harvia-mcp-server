@@ -5,6 +5,7 @@
 
 import { Env } from "./types.js";
 import { corsHeaders, jsonResponse } from "./utils.js";
+import { STYLESHEET } from "./styles.js";
 import { handleOAuthMetadata, handleProtectedResourceMetadata, handleClientRegistration, handleAuthorize, handleLogin, handleToken } from "./oauth.js";
 import { handleMcp } from "./mcp.js";
 import { handleSetupPage, handleSetupSubmit } from "./pages/setup.js";
@@ -20,6 +21,15 @@ export default {
     }
 
     switch (pathname) {
+      // Shared stylesheet for the HTML pages. Purely presentational.
+      case "/styles.css":
+        return new Response(STYLESHEET, {
+          headers: {
+            "Content-Type": "text/css;charset=UTF-8",
+            "Cache-Control": "public, max-age=600",
+          },
+        });
+
       case "/.well-known/oauth-protected-resource":
         return handleProtectedResourceMetadata(request);
 

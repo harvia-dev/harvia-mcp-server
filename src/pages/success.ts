@@ -1,6 +1,6 @@
 import { Env } from "../types.js";
 import { escapeHtml, getPublicBase } from "../utils.js";
-import { BRAND_FONTS, BRAND_CSS, setupHeader } from "../templates.js";
+import { BRAND_FONTS, stylesLink, THEME_COLOR, setupHeader, siteFooter } from "../templates.js";
 
 export async function renderSetupSuccess(request: Request, env: Env, email: string, sessionToken: string, ms: string): Promise<Response> {
   const base = getPublicBase(request);
@@ -28,9 +28,9 @@ export async function renderSetupSuccess(request: Request, env: Env, email: stri
           <input type="hidden" name="current" value="${escapeHtml(sessionToken)}">
           <button type="submit" class="revoke-btn" onclick="return confirm('Revoke this URL?')">Revoke</button>
         </form>`;
-    return `<tr${isCurrent ? ' style="background:#f0fff0;"' : ''}>
-      <td style="font-size:.825rem;color:var(--text);"><span data-ts="${e.createdAt}"></span>${isCurrent ? ' <span style="font-size:.7rem;background:var(--red);color:white;padding:1px 6px;border-radius:10px;margin-left:4px;">new</span>' : ''}</td>
-      <td style="font-family:monospace;font-size:.75rem;color:var(--text2);">${escapeHtml(e.token.substring(0,12))}…</td>
+    return `<tr${isCurrent ? ' class="sc-current"' : ''}>
+      <td><span data-ts="${e.createdAt}"></span>${isCurrent ? ' <span class="sc-badge">new</span>' : ''}</td>
+      <td class="sc-token">${escapeHtml(e.token.substring(0,12))}…</td>
       <td>${revokeBtn}</td>
     </tr>`;
   }).join("");
@@ -40,51 +40,36 @@ export async function renderSetupSuccess(request: Request, env: Env, email: stri
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Harvia MCP Setup</title>
+${THEME_COLOR}
 ${BRAND_FONTS}
+${stylesLink(base)}
 <style>
-${BRAND_CSS}
-main{flex:1;padding:2rem 1rem;display:flex;flex-direction:column;align-items:center;}
-.card{background:var(--white);border-radius:12px;border:1px solid var(--border);width:100%;max-width:580px;overflow:hidden;margin-bottom:1rem;}
-.card-header{background:var(--light-gray);padding:.9rem 1.4rem;display:flex;align-items:center;gap:.6rem;border-bottom:1px solid var(--border);}
-.card-header h2{font-size:.875rem;color:var(--text);font-weight:600;}
-.instruction{border:1px solid var(--border);border-radius:8px;margin-bottom:.75rem;overflow:hidden;}
-.instruction summary{list-style:none;cursor:pointer;padding:.7rem 1rem;font-family:'Montserrat',sans-serif;font-weight:600;font-size:.84rem;color:var(--text);display:flex;align-items:center;gap:.5rem;background:var(--bg);}
-.instruction summary::-webkit-details-marker{display:none;}
-.instruction summary::before{content:'▶';font-size:.55rem;color:var(--text2);transition:transform .15s;flex-shrink:0;}
-.instruction[open]>summary::before{transform:rotate(90deg);}
-.instruction-body{padding:.9rem 1rem 1rem;border-top:1px solid var(--border);}
-.card-body{padding:1.25rem 1.5rem;}
-.url-box{background:var(--cream);border:1px solid var(--light-gray);border-radius:6px;padding:.7rem 1rem;font-family:monospace;font-size:.78rem;color:var(--text);word-break:break-all;margin:.6rem 0 .8rem;}
-.btn{display:inline-flex;align-items:center;padding:.4rem .9rem;border:none;border-radius:5px;font-family:'Montserrat',sans-serif;font-weight:600;font-size:.78rem;cursor:pointer;transition:all .15s;}
-.btn-red{background:var(--red);color:white;}.btn-red:hover{background:var(--deep-red);}
-.btn-dark{background:var(--text);color:white;}.btn-dark:hover{background:var(--near-black);}
-.btn-gray{background:var(--warm-gray);color:var(--text);border:1px solid var(--light-gray);}.btn-gray:hover{background:var(--red);color:white;border-color:var(--red);}
-.btn-danger{background:white;color:#7a2020;border:1px solid #f5c4c4;}.btn-danger:hover{background:#7a2020;color:white;}
-.btn.ok{background:#2d7a2d !important;color:white !important;}
-.tabs{display:flex;border-bottom:1px solid var(--border);margin-bottom:.9rem;}
-.tab{padding:.4rem 1rem;font-size:.825rem;font-weight:500;color:var(--text2);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;}
-.tab.active{color:var(--red);border-bottom-color:var(--red);}
-.tab-panel{display:none;}.tab-panel.active{display:block;}
-.step-row{display:flex;gap:.6rem;align-items:flex-start;margin-bottom:.6rem;}
-.step-dot{width:18px;height:18px;border-radius:50%;background:var(--warm-gray);border:1px solid var(--light-gray);font-family:'Montserrat',sans-serif;font-weight:700;font-size:.65rem;color:var(--text2);display:flex;align-items:center;justify-content:center;flex-shrink:0;margin-top:2px;}
-.step-row p{font-size:.84rem;color:var(--text);line-height:1.5;}
-.cmd-box{background:var(--near-black);border-radius:6px;padding:.6rem .9rem;font-family:monospace;font-size:.76rem;color:#e8e8e0;word-break:break-all;margin:.4rem 0 .6rem;}
-.note{font-size:.76rem;color:var(--text2);padding:.7rem 1rem;background:var(--warm-gray);border-radius:6px;margin-top:.75rem;}
-.notice-beta{background:var(--cream);border:1px solid var(--light-gray);border-radius:6px;padding:.75rem 1rem;font-size:.8rem;color:var(--text2);line-height:1.6;margin-bottom:1.1rem;}
-.notice-beta strong{font-weight:600;}
-.notice-beta ul{margin:.4rem 0 0 1.1rem;padding:0;}
-.notice-beta li{margin-bottom:.2rem;}
+main{align-items:center;}
+.column{max-width:640px;}
+.card{margin-bottom:1rem;}
+.sc-lead{font-size:.875rem;color:var(--text-muted);line-height:1.6;}
+.sc-actions{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;}
+.sc-link{font-size:.8rem;color:var(--text-dim);text-decoration:none;border-bottom:1px solid var(--line-strong);}
+.sc-link:hover{color:var(--text);border-bottom-color:var(--text);}
+.sc-hint{margin-top:1.1rem;}
+.sc-aside{font-size:.8rem;color:var(--text-muted);line-height:1.6;margin-top:.85rem;}
+.sc-muted{color:var(--text-dim);}
+.sc-more{margin-top:.6rem;font-style:italic;}
+.instruction-body>.notice-beta{margin-bottom:1.15rem;}
+/* The row for the URL just issued. */
+.sc-current{background:rgba(237,28,36,.08);}
+.sc-badge{
+  font-family:var(--font-display);font-weight:700;
+  font-size:.62rem;letter-spacing:.08em;text-transform:uppercase;
+  background:var(--harvia-red);color:var(--natural-white);
+  padding:2px 7px;border-radius:var(--radius);margin-left:6px;
+}
+.sc-token{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:.75rem;color:var(--text-dim);}
 details.card>summary{list-style:none;cursor:pointer;}
 details.card>summary::-webkit-details-marker{display:none;}
-details.card>summary.card-header:hover{filter:brightness(.97);}
-table{width:100%;border-collapse:collapse;}
-th{text-align:left;font-size:.72rem;font-weight:600;letter-spacing:.05em;text-transform:uppercase;color:var(--text2);padding:.6rem 1rem;border-bottom:1px solid var(--border);background:var(--warm-gray);}
-td{padding:.65rem 1rem;border-bottom:1px solid var(--border);vertical-align:middle;}
-tr:last-child td{border-bottom:none;}
-.revoke-btn{padding:.3rem .65rem;background:white;color:#7a2020;border:1px solid #f5c4c4;border-radius:5px;font-family:'Montserrat',sans-serif;font-weight:600;font-size:.72rem;cursor:pointer;}
-.revoke-btn:hover{background:#7a2020;color:white;}
-.table-footer{padding:.8rem 1rem;display:flex;justify-content:space-between;align-items:center;border-top:1px solid var(--border);background:var(--warm-gray);}
-footer{text-align:center;padding:1.25rem;font-size:.75rem;color:var(--text2);}
+details.card>summary.card-header{transition:background-color .15s;}
+details.card>summary.card-header:hover{background:rgba(255,255,255,.06);}
+.note code{font-size:.76rem;}
 </style>
 <script>
 function copyText(text, btn) {
@@ -124,18 +109,19 @@ document.addEventListener('DOMContentLoaded', function() {
 <body>
 ${setupHeader({ base })}
 <main>
+<div class="column">
 
 <div class="card">
   <div class="card-header"><h2>Your personal Harvia MCP server URL</h2></div>
   <div class="card-body">
-    <p style="font-size:.84rem;color:var(--text2);">This URL allows using the Harvia MCP server with your MyHarvia account. Keep it private and treat it like a password.</p>
+    <p class="sc-lead">This URL allows using the Harvia MCP server with your MyHarvia account. Keep it private and treat it like a password.</p>
     <div id="url-box" class="url-box" data-url="${escapeHtml(mcpUrl)}" data-visible="0">••••••••••••••••••••••••••••••••••••••••</div>
-    <div style="display:flex;align-items:center;gap:.75rem;flex-wrap:wrap;">
-      <button class="btn btn-red" onclick="copyText('${escapeHtml(mcpUrl)}',this)">Copy URL</button>
-      <button id="url-toggle" class="btn btn-gray" onclick="toggleUrl()">Show URL</button>
-      <a href="#manage-urls" onclick="openManage()" style="font-size:.8rem;color:var(--text2);text-decoration:none;border-bottom:1px solid var(--light-gray);">Manage your URLs</a>
+    <div class="sc-actions">
+      <button class="btn btn-primary btn-sm" onclick="copyText('${escapeHtml(mcpUrl)}',this)">Copy URL</button>
+      <button id="url-toggle" class="btn btn-ghost btn-sm" onclick="toggleUrl()">Show URL</button>
+      <a href="#manage-urls" onclick="openManage()" class="sc-link">Manage your URLs</a>
     </div>
-    <p style="font-size:.75rem;color:var(--text2);margin-top:1rem;">URLs are valid for 1 year. You need to generate a new URL if you change your password.</p>
+    <p class="hint sc-hint">URLs are valid for 1 year. You need to generate a new URL if you change your password.</p>
   </div>
 </div>
 
@@ -153,15 +139,15 @@ ${setupHeader({ base })}
             <li>Free plan users can currently have <strong>one custom connector</strong> at a time.</li>
           </ul>
         </div>
-        <div class="step-row"><div class="step-dot">1</div><p>Open <a href="https://claude.ai" target="_blank" rel="noopener" style="color:var(--red);">claude.ai</a> <span style="color:var(--text2);">(These instructions are for the online version. Currently, it is not possible to set up Harvia MCP server in the desktop or mobile application. However, you will be able to use it through the applications after setup.)</span></p></div>
+        <div class="step-row"><div class="step-dot">1</div><p>Open <a href="https://claude.ai" target="_blank" rel="noopener">claude.ai</a> <span class="sc-muted">(These instructions are for the online version. Currently, it is not possible to set up Harvia MCP server in the desktop or mobile application. However, you will be able to use it through the applications after setup.)</span></p></div>
         <div class="step-row"><div class="step-dot">2</div><p>Click <strong>Customize</strong> in the left sidebar</p></div>
         <div class="step-row"><div class="step-dot">3</div><p>Select <strong>Connectors</strong></p></div>
         <div class="step-row"><div class="step-dot">4</div><p>Press the <strong>+</strong> icon in the top right corner</p></div>
         <div class="step-row"><div class="step-dot">5</div><p>Select <strong>Add custom connector</strong></p></div>
         <div class="step-row"><div class="step-dot">6</div><p>Give the server a name (e.g. <strong>"Harvia"</strong>) and paste your URL from above</p></div>
         <div class="step-row"><div class="step-dot">7</div><p><strong>Save</strong> — your Harvia devices are now available in Claude. You may need to start a new chat or restart Claude for the changes to take effect.</p></div>
-        <p style="font-size:.8rem;color:var(--text2);margin-top:.9rem;line-height:1.6;">You can edit the connector settings from the same menu to customize which commands require your permission before running.</p>
-        <p style="font-size:.8rem;color:var(--text2);margin-top:.75rem;line-height:1.6;">When you're done setting up, you can <a href="${escapeHtml(base + "/setup")}" style="color:var(--red);text-decoration:none;">log out here.</a></p>
+        <p class="sc-aside">You can edit the connector settings from the same menu to customize which commands require your permission before running.</p>
+        <p class="sc-aside">When you're done setting up, you can <a href="${escapeHtml(base + "/setup")}">log out here.</a></p>
       </div>
     </details>
 
@@ -176,45 +162,46 @@ ${setupHeader({ base })}
           <div class="step-row"><div class="step-dot">1</div><p>Open <strong>PowerShell</strong></p></div>
           <div class="step-row"><div class="step-dot">2</div><p>Run this command:</p></div>
           <div class="cmd-box">${escapeHtml(cmd)}</div>
-          <button class="btn btn-red" onclick="copyText('${escapeHtml(cmd)}',this)">Copy command</button>
-          <div class="step-row" style="margin-top:.75rem;"><div class="step-dot">3</div><p>Start a <strong>new Claude Code session</strong> — your Harvia devices will be available.</p></div>
+          <button class="btn btn-primary btn-sm" onclick="copyText('${escapeHtml(cmd)}',this)">Copy command</button>
+          <div class="step-row" style="margin-top:.9rem;"><div class="step-dot">3</div><p>Start a <strong>new Claude Code session</strong> — your Harvia devices will be available.</p></div>
         </div>
         <div class="tab-panel" data-os="mac">
           <div class="step-row"><div class="step-dot">1</div><p>Open <strong>Terminal</strong></p></div>
           <div class="step-row"><div class="step-dot">2</div><p>Run this command:</p></div>
           <div class="cmd-box">${escapeHtml(cmd)}</div>
-          <button class="btn btn-red" onclick="copyText('${escapeHtml(cmd)}',this)">Copy command</button>
-          <div class="step-row" style="margin-top:.75rem;"><div class="step-dot">3</div><p>Start a <strong>new Claude Code session</strong> — your Harvia devices will be available.</p></div>
+          <button class="btn btn-primary btn-sm" onclick="copyText('${escapeHtml(cmd)}',this)">Copy command</button>
+          <div class="step-row" style="margin-top:.9rem;"><div class="step-dot">3</div><p>Start a <strong>new Claude Code session</strong> — your Harvia devices will be available.</p></div>
         </div>
-        <div class="note">You can also add this server directly to Claude's MCP config JSON file under <code style="font-size:.76rem;">mcpServers</code>.</div>
-        <p style="font-size:.8rem;color:var(--text2);margin-top:.75rem;line-height:1.6;">When you're done setting up, you can <a href="${escapeHtml(base + "/setup")}" style="color:var(--red);text-decoration:none;">log out here.</a></p>
+        <div class="note">You can also add this server directly to Claude's MCP config JSON file under <code>mcpServers</code>.</div>
+        <p class="sc-aside">When you're done setting up, you can <a href="${escapeHtml(base + "/setup")}">log out here.</a></p>
       </div>
     </details>
 
-    <p style="font-size:.78rem;color:var(--text2);margin-top:.5rem;font-style:italic;">More instructions coming soon</p>
+    <p class="more-soon sc-more">More instructions coming soon</p>
 
   </div>
 </div>
 
 <details class="card" id="manage-urls">
-  <summary class="card-header" style="display:flex;align-items:center;gap:.6rem;cursor:pointer;">
-    <h2>Manage your URLs <span style="font-size:.75rem;font-weight:400;color:var(--text2);margin-left:.4rem;">— click to expand</span></h2>
+  <summary class="card-header">
+    <h2>Manage your URLs</h2>
   </summary>
   <table>
     <thead><tr><th>Created</th><th>Token</th><th></th></tr></thead>
     <tbody>${urlRows}</tbody>
   </table>
   <div class="table-footer">
-    <a href="${escapeHtml(base+"/setup?s="+ms)}" class="btn btn-red" style="text-decoration:none;">+ Generate new URL</a>
+    <a href="${escapeHtml(base+"/setup?s="+ms)}" class="btn btn-primary btn-sm">+ Generate new URL</a>
     ${alive.length > 1 ? `<form method="POST" action="${escapeHtml(base+"/revoke-all?s="+ms)}">
       <input type="hidden" name="current" value="${escapeHtml(sessionToken)}">
-      <button type="submit" class="btn btn-danger" onclick="return confirm('Revoke all ${alive.length - 1} previous URL${alive.length - 1 !== 1 ? "s" : ""}?')">Revoke all previous URLs</button>
+      <button type="submit" class="btn btn-ghost btn-sm" onclick="return confirm('Revoke all ${alive.length - 1} previous URL${alive.length - 1 !== 1 ? "s" : ""}?')">Revoke all previous URLs</button>
     </form>` : ""}
   </div>
 </details>
 
+</div>
 </main>
-<footer>Created by <a href="https://www.harvialabs.com/" target="_blank" rel="noopener" style="color:inherit;">Harvia Labs</a>. &copy; 2026 Harvia</footer>
+${siteFooter()}
 </body>
 </html>`;
   return new Response(html, { headers: { "Content-Type": "text/html;charset=UTF-8" } });
